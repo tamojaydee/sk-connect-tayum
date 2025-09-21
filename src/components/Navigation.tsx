@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 import { 
   Menu, 
   X, 
@@ -57,11 +58,11 @@ const Navigation = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-3">
-            <Button variant="outline" size="sm">
-              Login
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/auth">Login</Link>
             </Button>
-            <Button size="sm" className="bg-primary hover:bg-primary-hover">
-              Register
+            <Button size="sm" className="bg-primary hover:bg-primary-hover" asChild>
+              <Link to="/auth">Register</Link>
             </Button>
           </div>
 
@@ -92,11 +93,11 @@ const Navigation = () => {
                 </a>
               ))}
               <div className="pt-4 space-y-2">
-                <Button variant="outline" size="sm" className="w-full">
-                  Login
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <Link to="/auth">Login</Link>
                 </Button>
-                <Button size="sm" className="w-full bg-primary hover:bg-primary-hover">
-                  Register
+                <Button size="sm" className="w-full bg-primary hover:bg-primary-hover" asChild>
+                  <Link to="/auth">Register</Link>
                 </Button>
               </div>
             </div>
