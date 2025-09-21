@@ -71,7 +71,7 @@ const HeroSection = () => {
             <Link to="/survey">
               <Button size="lg" className="bg-primary hover:bg-primary-hover text-lg px-8 py-3 shadow-primary w-full">
                 <Users className="mr-2 h-5 w-5" />
-                Start Your Profile
+                Take the Survey
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>

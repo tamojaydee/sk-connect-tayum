@@ -90,7 +90,7 @@ const Index = () => {
           </p>
           <Link to="/survey">
             <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-              Get Started Today
+              Take the Survey
               <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
