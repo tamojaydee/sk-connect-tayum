@@ -15,6 +15,7 @@ import {
   Award,
   BookOpen
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import DashboardPreview from "@/components/DashboardPreview";
@@ -87,10 +88,12 @@ const Index = () => {
           <p className="text-xl mb-8 text-primary-foreground/90 max-w-2xl mx-auto">
             Join SKey Connect and be part of building transparent, accountable youth leadership in Tayum, Abra.
           </p>
-          <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-            Get Started Today
-            <ChevronRight className="ml-2 h-5 w-5" />
-          </Button>
+          <Link to="/survey">
+            <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
+              Get Started Today
+              <ChevronRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </section>
     </div>

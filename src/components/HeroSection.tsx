@@ -7,6 +7,7 @@ import {
   Users,
   CheckCircle
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/skey-hero-banner.jpg";
 
 const HeroSection = () => {
@@ -67,11 +68,13 @@ const HeroSection = () => {
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-primary hover:bg-primary-hover text-lg px-8 py-3 shadow-primary">
-              <Users className="mr-2 h-5 w-5" />
-              Start Your Profile
-              <ChevronRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link to="/survey">
+              <Button size="lg" className="bg-primary hover:bg-primary-hover text-lg px-8 py-3 shadow-primary w-full">
+                <Users className="mr-2 h-5 w-5" />
+                Start Your Profile
+                <ChevronRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Button variant="outline" size="lg" className="text-lg px-8 py-3 border-primary/20 hover:bg-primary/5">
               <Shield className="mr-2 h-5 w-5" />
               Learn About Transparency
