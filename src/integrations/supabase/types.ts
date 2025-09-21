@@ -14,16 +14,195 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      barangays: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          barangay_id: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          document_type: string
+          file_url: string | null
+          id: string
+          is_public: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          barangay_id: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          document_type: string
+          file_url?: string | null
+          id?: string
+          is_public?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          barangay_id?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          document_type?: string
+          file_url?: string | null
+          id?: string
+          is_public?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_barangay_id_fkey"
+            columns: ["barangay_id"]
+            isOneToOne: false
+            referencedRelation: "barangays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          barangay_id: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          event_date: string
+          id: string
+          location: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          barangay_id: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          event_date: string
+          id?: string
+          location?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          barangay_id?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          event_date?: string
+          id?: string
+          location?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_barangay_id_fkey"
+            columns: ["barangay_id"]
+            isOneToOne: false
+            referencedRelation: "barangays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          barangay_id: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          barangay_id?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active?: boolean | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          barangay_id?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_barangay_id_fkey"
+            columns: ["barangay_id"]
+            isOneToOne: false
+            referencedRelation: "barangays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_barangay_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "main_admin" | "sk_chairman" | "kagawad"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +329,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["main_admin", "sk_chairman", "kagawad"],
+    },
   },
 } as const
