@@ -273,7 +273,7 @@ const DashboardContent = ({ activeTab, profile }: DashboardContentProps) => {
   useEffect(() => {
     if (activeTab === 'events') {
       fetchEvents();
-    } else if (activeTab === 'documents') {
+    } else if (activeTab === 'documents' && profile.role !== 'kagawad') {
       fetchDocuments();
     } else if (activeTab === 'users' && (profile.role === 'main_admin' || profile.role === 'sk_chairman')) {
       fetchUsers();
@@ -330,41 +330,241 @@ const DashboardContent = ({ activeTab, profile }: DashboardContentProps) => {
     }
   };
 
-  const renderOverview = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{events.length}</div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
-          <FileText className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{documents.length}</div>
-        </CardContent>
-      </Card>
+  const renderOverview = () => {
+    // Role-specific overview content
+    if (profile.role === 'main_admin') {
+      return (
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+                <Calendar className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">{events.length}</div>
+                <p className="text-xs text-muted-foreground">Across all barangays</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+                <FileText className="h-4 w-4 text-secondary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-secondary">{documents.length}</div>
+                <p className="text-xs text-muted-foreground">System-wide documents</p>
+              </CardContent>
+            </Card>
 
-      {(profile.role === 'main_admin' || profile.role === 'sk_chairman') && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+            <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-accent" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-accent">{users.length}</div>
+                <p className="text-xs text-muted-foreground">All system users</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-muted/20 to-muted/10 border-muted/40">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Barangays</CardTitle>
+                <Settings className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">11</div>
+                <p className="text-xs text-muted-foreground">Tayum, Abra</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">System Administration</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">As main administrator, you have full system access:</p>
+                <ul className="text-sm space-y-1">
+                  <li>• Manage SK Chairmen and Kagawads</li>
+                  <li>• View and modify all content</li>
+                  <li>• System-wide configuration</li>
+                  <li>• User role assignments</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button className="w-full justify-start" variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New SK Chairman
+                </Button>
+                <Button className="w-full justify-start" variant="outline">
+                  <Settings className="h-4 w-4 mr-2" />
+                  System Settings
+                </Button>
+                <Button className="w-full justify-start" variant="outline">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Generate Reports
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    if (profile.role === 'sk_chairman') {
+      return (
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">My Events</CardTitle>
+                <Calendar className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">{events.length}</div>
+                <p className="text-xs text-muted-foreground">In {profile.barangays?.name}</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">My Documents</CardTitle>
+                <FileText className="h-4 w-4 text-secondary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-secondary">{documents.length}</div>
+                <p className="text-xs text-muted-foreground">Barangay documents</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">My Kagawads</CardTitle>
+                <Users className="h-4 w-4 text-accent" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-accent">{users.filter(u => u.role === 'kagawad').length}</div>
+                <p className="text-xs text-muted-foreground">Team members</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">SK Chairman Dashboard</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">Managing {profile.barangays?.name} barangay:</p>
+                <ul className="text-sm space-y-1">
+                  <li>• Manage kagawad accounts</li>
+                  <li>• Create and edit documents</li>
+                  <li>• Organize barangay events</li>
+                  <li>• View team activities</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button className="w-full justify-start" variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Event
+                </Button>
+                <Button className="w-full justify-start" variant="outline">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Create Document
+                </Button>
+                <Button className="w-full justify-start" variant="outline">
+                  <Users className="h-4 w-4 mr-2" />
+                  Manage Kagawads
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    // Kagawad role
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">My Events</CardTitle>
+              <Calendar className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{events.length}</div>
+              <p className="text-xs text-muted-foreground">Events I've created</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">My Barangay</CardTitle>
+              <Settings className="h-4 w-4 text-accent" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-bold text-accent">{profile.barangays?.name}</div>
+              <p className="text-xs text-muted-foreground">Serving the community</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Kagawad Portal</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">Your role in {profile.barangays?.name}:</p>
+              <ul className="text-sm space-y-1">
+                <li>• Create and manage events</li>
+                <li>• Coordinate community activities</li>
+                <li>• Support barangay initiatives</li>
+                <li>• Serve the residents</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button className="w-full justify-start" variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Event
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <Calendar className="h-4 w-4 mr-2" />
+                View My Events
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <Settings className="h-4 w-4 mr-2" />
+                Update Profile
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  };
 
   const renderEvents = () => (
     <div className="space-y-4">
@@ -416,90 +616,188 @@ const DashboardContent = ({ activeTab, profile }: DashboardContentProps) => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Documents</h2>
         {profile.role === 'sk_chairman' && (
-          <Button>
+          <Button className="bg-secondary hover:bg-secondary-hover text-secondary-foreground">
             <Plus className="h-4 w-4 mr-2" />
             Add Document
           </Button>
         )}
       </div>
       
-      <div className="grid gap-4">
-        {documents.map((document) => (
-          <Card key={document.id}>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                {document.title}
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4" />
+      {profile.role === 'kagawad' ? (
+        <Card className="text-center py-8">
+          <CardContent>
+            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Documents Access Restricted</h3>
+            <p className="text-muted-foreground">
+              As a Kagawad, you can only manage events. Document management is reserved for SK Chairman.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {documents.length === 0 ? (
+            <Card className="text-center py-8">
+              <CardContent>
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Documents Yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Start by creating your first document for the barangay.
+                </p>
+                {profile.role === 'sk_chairman' && (
+                  <Button className="bg-secondary hover:bg-secondary-hover text-secondary-foreground">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create First Document
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-2">{document.description}</p>
-              <div className="flex justify-between text-sm">
-                <span>📂 {document.document_type}</span>
-                <span>🏘️ {document.barangays.name}</span>
-                <span>👤 {document.profiles.full_name}</span>
-                <span>{document.is_public ? '🌐 Public' : '🔒 Private'}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            documents.map((document) => (
+              <Card key={document.id} className="hover:shadow-card transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-center">
+                    {document.title}
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="hover:bg-primary/10">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      {(profile.role === 'main_admin' || profile.role === 'sk_chairman') && (
+                        <>
+                          <Button variant="outline" size="sm" className="hover:bg-secondary/10">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" className="hover:bg-destructive/10">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-2">{document.description}</p>
+                  <div className="flex justify-between text-sm flex-wrap gap-2">
+                    <span className="flex items-center gap-1">
+                      <FileText className="h-3 w-3" />
+                      {document.document_type}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      🏘️ {document.barangays.name}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      👤 {document.profiles.full_name}
+                    </span>
+                    <span className={`flex items-center gap-1 ${document.is_public ? 'text-green-600' : 'text-orange-600'}`}>
+                      {document.is_public ? '🌐 Public' : '🔒 Private'}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 
-  const renderUsers = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Users</h2>
-        {profile.role === 'main_admin' && (
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
-        )}
-      </div>
-      
-      <div className="grid gap-4">
-        {users.map((user) => (
-          <Card key={user.id}>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                {user.full_name}
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
+  const renderUsers = () => {
+    const filteredUsers = profile.role === 'sk_chairman' 
+      ? users.filter(user => user.role === 'kagawad' && user.barangay_id === profile.barangay_id)
+      : users;
+
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">
+            {profile.role === 'main_admin' ? 'All Users' : 'My Kagawads'}
+          </h2>
+          {profile.role === 'main_admin' && (
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Plus className="h-4 w-4 mr-2" />
+              Add SK Chairman
+            </Button>
+          )}
+        </div>
+        
+        <div className="grid gap-4">
+          {filteredUsers.length === 0 ? (
+            <Card className="text-center py-8">
+              <CardContent>
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  {profile.role === 'sk_chairman' ? 'No Kagawads Yet' : 'No Users Yet'}
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {profile.role === 'sk_chairman' 
+                    ? 'Start by adding kagawads to help manage your barangay.'
+                    : 'Start by adding SK Chairmen for each barangay.'
+                  }
+                </p>
+                {profile.role === 'main_admin' && (
+                  <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First User
                   </Button>
-                  {profile.role === 'main_admin' && (
-                    <Button variant="outline" size="sm">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <p>📧 {user.email}</p>
-                <p>👤 {user.role.replace('_', ' ').toUpperCase()}</p>
-                {user.barangays && <p>🏘️ {user.barangays.name}</p>}
-                <p>📊 {user.is_active ? '✅ Active' : '❌ Inactive'}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            filteredUsers.map((user) => (
+              <Card key={user.id} className="hover:shadow-card transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${user.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                      {user.full_name}
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        user.role === 'main_admin' ? 'bg-accent/20 text-accent' :
+                        user.role === 'sk_chairman' ? 'bg-primary/20 text-primary' :
+                        'bg-secondary/20 text-secondary'
+                      }`}>
+                        {user.role.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="hover:bg-primary/10">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      {profile.role === 'main_admin' && (
+                        <Button variant="outline" size="sm" className="hover:bg-destructive/10">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Email</p>
+                      <p className="font-medium">{user.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Barangay</p>
+                      <p className="font-medium">{user.barangays?.name || 'Not assigned'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Status</p>
+                      <p className={`font-medium ${user.is_active ? 'text-green-600' : 'text-red-600'}`}>
+                        {user.is_active ? 'Active' : 'Inactive'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Joined</p>
+                      <p className="font-medium">{new Date(user.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderSettings = () => (
     <div className="space-y-4">
