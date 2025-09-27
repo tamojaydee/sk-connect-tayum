@@ -61,9 +61,6 @@ const Navigation = () => {
             <Button variant="outline" size="sm" asChild>
               <Link to="/auth">Login</Link>
             </Button>
-            <Button size="sm" className="bg-primary hover:bg-primary-hover" asChild>
-              <Link to="/auth">Register</Link>
-            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -95,9 +92,6 @@ const Navigation = () => {
               <div className="pt-4 space-y-2">
                 <Button variant="outline" size="sm" className="w-full" asChild>
                   <Link to="/auth">Login</Link>
-                </Button>
-                <Button size="sm" className="w-full bg-primary hover:bg-primary-hover" asChild>
-                  <Link to="/auth">Register</Link>
                 </Button>
               </div>
             </div>
