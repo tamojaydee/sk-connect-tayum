@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { AddEventForm } from '@/components/forms/AddEventForm';
+import { AddDocumentForm } from '@/components/forms/AddDocumentForm';
+import { EventCard } from '@/components/EventCard';
+import { DocumentCard } from '@/components/DocumentCard';
 import { 
   Users, 
   Calendar, 
@@ -52,6 +56,7 @@ interface Event {
   event_date: string;
   location: string;
   status: string;
+  created_by: string;
   barangays: {
     name: string;
   };
@@ -65,7 +70,10 @@ interface Document {
   title: string;
   description: string;
   document_type: string;
+  file_url: string | null;
   is_public: boolean;
+  created_at: string;
+  created_by: string;
   barangays: {
     name: string;
   };
@@ -566,139 +574,109 @@ const DashboardContent = ({ activeTab, profile }: DashboardContentProps) => {
     );
   };
 
-  const renderEvents = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Events</h2>
-        {(profile.role === 'sk_chairman' || profile.role === 'kagawad') && (
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Event
-          </Button>
-        )}
-      </div>
-      
-      <div className="grid gap-4">
-        {events.map((event) => (
-          <Card key={event.id}>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                {event.title}
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-2">{event.description}</p>
-              <div className="flex justify-between text-sm">
-                <span>📍 {event.location}</span>
-                <span>🏘️ {event.barangays.name}</span>
-                <span>👤 {event.profiles.full_name}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
+  const renderEvents = () => {
+    const canCreateEvents = profile.role === 'sk_chairman' || profile.role === 'kagawad';
+    const canEditEvents = (event: Event) => event.created_by === profile.id || profile.role === 'main_admin';
 
-  const renderDocuments = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Documents</h2>
-        {profile.role === 'sk_chairman' && (
-          <Button className="bg-secondary hover:bg-secondary-hover text-secondary-foreground">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Document
-          </Button>
-        )}
-      </div>
-      
-      {profile.role === 'kagawad' ? (
-        <Card className="text-center py-8">
-          <CardContent>
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Documents Access Restricted</h3>
-            <p className="text-muted-foreground">
-              As a Kagawad, you can only manage events. Document management is reserved for SK Chairman.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {documents.length === 0 ? (
-            <Card className="text-center py-8">
-              <CardContent>
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Documents Yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Start by creating your first document for the barangay.
-                </p>
-                {profile.role === 'sk_chairman' && (
-                  <Button className="bg-secondary hover:bg-secondary-hover text-secondary-foreground">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create First Document
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            documents.map((document) => (
-              <Card key={document.id} className="hover:shadow-card transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    {document.title}
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="hover:bg-primary/10">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {(profile.role === 'main_admin' || profile.role === 'sk_chairman') && (
-                        <>
-                          <Button variant="outline" size="sm" className="hover:bg-secondary/10">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" className="hover:bg-destructive/10">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-2">{document.description}</p>
-                  <div className="flex justify-between text-sm flex-wrap gap-2">
-                    <span className="flex items-center gap-1">
-                      <FileText className="h-3 w-3" />
-                      {document.document_type}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      🏘️ {document.barangays.name}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      👤 {document.profiles.full_name}
-                    </span>
-                    <span className={`flex items-center gap-1 ${document.is_public ? 'text-green-600' : 'text-orange-600'}`}>
-                      {document.is_public ? '🌐 Public' : '🔒 Private'}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+    const handleDeleteEvent = async (eventId: string) => {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', eventId);
+
+      if (error) {
+        console.error('Error deleting event:', error);
+      } else {
+        fetchEvents();
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Events</h2>
+          {canCreateEvents && (
+            <AddEventForm onEventAdded={fetchEvents} userProfile={profile} />
           )}
         </div>
-      )}
-    </div>
-  );
+        <div className="grid gap-4">
+          {events.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              canEdit={canEditEvents(event)}
+              onDelete={handleDeleteEvent}
+            />
+          ))}
+          {events.length === 0 && (
+            <Card>
+              <CardContent className="text-center py-8">
+                <p className="text-muted-foreground">No events found</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDocuments = () => {
+    const canCreateDocuments = profile.role === 'sk_chairman';
+    const canEditDocuments = (document: Document) => document.created_by === profile.id || profile.role === 'main_admin';
+
+    const handleDeleteDocument = async (documentId: string) => {
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', documentId);
+
+      if (error) {
+        console.error('Error deleting document:', error);
+      } else {
+        fetchDocuments();
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Documents</h2>
+          {canCreateDocuments && (
+            <AddDocumentForm onDocumentAdded={fetchDocuments} userProfile={profile} />
+          )}
+        </div>
+        {profile.role === 'kagawad' ? (
+          <Card>
+            <CardContent className="text-center py-8">
+              <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
+              <p className="text-muted-foreground">
+                As a Kagawad, you don't have access to view documents. Please contact your SK Chairman for assistance.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {documents.map((doc) => (
+              <DocumentCard
+                key={doc.id}
+                document={doc}
+                canEdit={canEditDocuments(doc)}
+                onDelete={handleDeleteDocument}
+              />
+            ))}
+            {documents.length === 0 && (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground">No documents found</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderUsers = () => {
     const filteredUsers = profile.role === 'sk_chairman' 
