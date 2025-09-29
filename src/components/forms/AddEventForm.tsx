@@ -1,20 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
-import { LocationPicker } from './LocationPicker';
+import { MapboxLocationPicker } from './MapboxLocationPicker';
 
-interface EventFormData {
-  title: string;
-  description: string;
-  location: string;
-  event_date: string;
+const eventSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
+  description: z.string().trim().max(1000, "Description must be less than 1000 characters").optional(),
+  location: z.string().trim().min(1, "Location is required").max(255, "Location must be less than 255 characters"),
+  event_date: z.string().min(1, "Event date is required"),
+  barangay_id: z.string().min(1, "Barangay is required"),
+});
+
+type EventFormData = z.infer<typeof eventSchema>;
+
+interface Barangay {
+  id: string;
+  name: string;
+  code: string;
 }
 
 interface AddEventFormProps {
@@ -25,6 +37,7 @@ interface AddEventFormProps {
 export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userProfile }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [barangays, setBarangays] = useState<Barangay[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{
     address: string;
     lat: number;
@@ -34,24 +47,39 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
   const { toast } = useToast();
   
   const form = useForm<EventFormData>({
+    resolver: zodResolver(eventSchema),
     defaultValues: {
       title: '',
       description: '',
       location: '',
       event_date: '',
+      barangay_id: userProfile?.barangay_id || '',
     },
   });
 
-  const onSubmit = async (data: EventFormData) => {
-    if (!userProfile?.barangay_id) {
+  useEffect(() => {
+    fetchBarangays();
+  }, []);
+
+  const fetchBarangays = async () => {
+    const { data, error } = await supabase
+      .from('barangays')
+      .select('id, name, code')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching barangays:', error);
       toast({
         title: "Error",
-        description: "No barangay assigned to your profile",
+        description: "Failed to load barangays",
         variant: "destructive",
       });
-      return;
+    } else {
+      setBarangays(data || []);
     }
+  };
 
+  const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     
     try {
@@ -72,7 +100,7 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
           description: data.description,
           location: locationData,
           event_date: new Date(data.event_date).toISOString(),
-          barangay_id: userProfile.barangay_id,
+          barangay_id: data.barangay_id,
           created_by: userProfile.id,
         });
 
@@ -116,13 +144,37 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
             <FormField
               control={form.control}
               name="title"
-              rules={{ required: "Title is required" }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
                     <Input placeholder="Event title" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="barangay_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Barangay</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a barangay" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {barangays.map((barangay) => (
+                        <SelectItem key={barangay.id} value={barangay.id}>
+                          {barangay.name} ({barangay.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -149,13 +201,12 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
             <FormField
               control={form.control}
               name="location"
-              rules={{ required: "Location is required" }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Location</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Event location" 
+                      placeholder="Event location in Tayum, Abra" 
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
@@ -170,7 +221,7 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
               )}
             />
 
-            <LocationPicker
+            <MapboxLocationPicker
               onLocationSelect={(location) => {
                 setSelectedLocation(location);
                 form.setValue('location', location.address);
@@ -181,7 +232,6 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
             <FormField
               control={form.control}
               name="event_date"
-              rules={{ required: "Event date is required" }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Event Date & Time</FormLabel>
