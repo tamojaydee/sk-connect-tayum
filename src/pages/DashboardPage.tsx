@@ -576,7 +576,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
   };
 
   const renderEvents = () => {
-    const canCreateEvents = profile.role === 'sk_chairman' || profile.role === 'kagawad';
+    const canCreateEvents = profile.role === 'sk_chairman' || profile.role === 'kagawad' || profile.role === 'main_admin';
     const canEditEvents = (event: Event) => event.created_by === profile.id || profile.role === 'main_admin';
 
     const handleDeleteEvent = async (eventId: string) => {
@@ -622,7 +622,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
   };
 
   const renderDocuments = () => {
-    const canCreateDocuments = profile.role === 'sk_chairman';
+    const canCreateDocuments = profile.role === 'sk_chairman' || profile.role === 'main_admin';
     const canEditDocuments = (document: Document) => document.created_by === profile.id || profile.role === 'main_admin';
 
     const handleDeleteDocument = async (documentId: string) => {

@@ -15,27 +15,35 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
+  // Tayum, Abra coordinates
+  const TAYUM_CENTER = { lat: 17.4851, lng: 120.7458 };
+  
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     
     setIsSearching(true);
     
-    // Simulate location search with some predefined locations
+    // Predefined locations in Tayum, Abra
     setTimeout(() => {
-      const locations = [
-        { address: 'Barangay Hall', lat: 14.5995, lng: 120.9842 },
-        { address: 'Community Center', lat: 14.6042, lng: 120.9822 },
-        { address: 'Public Plaza', lat: 14.5968, lng: 120.9876 },
-        { address: 'Sports Complex', lat: 14.6015, lng: 120.9798 },
-        { address: 'School Grounds', lat: 14.5978, lng: 120.9834 }
+      const tayumLocations = [
+        { address: 'Tayum Municipal Hall', lat: 17.4851, lng: 120.7458 },
+        { address: 'Tayum Public Plaza', lat: 17.4845, lng: 120.7465 },
+        { address: 'Tayum Elementary School', lat: 17.4860, lng: 120.7450 },
+        { address: 'Tayum Health Center', lat: 17.4840, lng: 120.7470 },
+        { address: 'Tayum Sports Complex', lat: 17.4855, lng: 120.7445 },
+        { address: 'Barangay San Jose Hall', lat: 17.4870, lng: 120.7440 },
+        { address: 'Barangay Poblacion Center', lat: 17.4848, lng: 120.7462 },
+        { address: 'Barangay Suyo Community Center', lat: 17.4835, lng: 120.7475 },
+        { address: 'Tayum Market', lat: 17.4843, lng: 120.7467 },
+        { address: 'Tayum Church', lat: 17.4852, lng: 120.7460 }
       ];
       
-      const found = locations.find(loc => 
+      const found = tayumLocations.find(loc => 
         loc.address.toLowerCase().includes(searchQuery.toLowerCase())
       ) || { 
         address: searchQuery, 
-        lat: 14.5995 + (Math.random() - 0.5) * 0.01, 
-        lng: 120.9842 + (Math.random() - 0.5) * 0.01 
+        lat: TAYUM_CENTER.lat + (Math.random() - 0.5) * 0.01, 
+        lng: TAYUM_CENTER.lng + (Math.random() - 0.5) * 0.01 
       };
       
       onLocationSelect(found);
@@ -48,12 +56,12 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // Convert click position to coordinates (simple mapping)
-    const lat = 14.5995 + (0.5 - y / rect.height) * 0.02;
-    const lng = 120.9842 + (x / rect.width - 0.5) * 0.02;
+    // Convert click position to Tayum, Abra coordinates
+    const lat = TAYUM_CENTER.lat + (0.5 - y / rect.height) * 0.02;
+    const lng = TAYUM_CENTER.lng + (x / rect.width - 0.5) * 0.02;
     
     const newLocation = {
-      address: `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+      address: `Tayum Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
       lat: parseFloat(lat.toFixed(6)),
       lng: parseFloat(lng.toFixed(6))
     };
@@ -113,8 +121,8 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
           <div 
             className="absolute w-6 h-6 transform -translate-x-3 -translate-y-6 pointer-events-none"
             style={{
-              left: `${50 + ((selectedLocation.lng - 120.9842) / 0.02) * 50}%`,
-              top: `${50 + ((14.5995 - selectedLocation.lat) / 0.02) * 50}%`
+              left: `${50 + ((selectedLocation.lng - TAYUM_CENTER.lng) / 0.02) * 50}%`,
+              top: `${50 + ((TAYUM_CENTER.lat - selectedLocation.lat) / 0.02) * 50}%`
             }}
           >
             <MapPin className="h-6 w-6 text-primary drop-shadow-lg" fill="currentColor" />
@@ -125,9 +133,15 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center text-muted-foreground bg-background/80 backdrop-blur-sm p-4 rounded-md">
             <MapPin className="h-8 w-8 mx-auto mb-2" />
-            <p className="text-sm font-medium">Interactive Map</p>
-            <p className="text-xs">Click anywhere to select location</p>
+            <p className="text-sm font-medium">Tayum, Abra Map</p>
+            <p className="text-xs">Click anywhere to select location in Tayum</p>
           </div>
+        </div>
+        
+        {/* Tayum landmarks overlay */}
+        <div className="absolute top-2 left-2 bg-background/90 backdrop-blur-sm p-2 rounded text-xs">
+          <p className="font-medium text-primary">Tayum, Abra</p>
+          <p className="text-muted-foreground">Municipality Map</p>
         </div>
       </div>
     </div>
