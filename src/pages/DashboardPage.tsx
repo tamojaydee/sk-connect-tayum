@@ -209,7 +209,7 @@ const DashboardPage = () => {
             </p>
           </div>
 
-          <DashboardContent activeTab={activeTab} profile={profile} />
+          <DashboardContent activeTab={activeTab} profile={profile} setActiveTab={setActiveTab} />
         </main>
       </div>
     </SidebarProvider>
@@ -271,12 +271,15 @@ const DashboardSidebar = ({ profile, activeTab, setActiveTab, onLogout }: Dashbo
 interface DashboardContentProps {
   activeTab: string;
   profile: UserProfile;
+  setActiveTab: (tab: string) => void;
 }
 
-const DashboardContent = ({ activeTab, profile }: DashboardContentProps) => {
+const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContentProps) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [showAddDocument, setShowAddDocument] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'events') {
@@ -285,6 +288,15 @@ const DashboardContent = ({ activeTab, profile }: DashboardContentProps) => {
       fetchDocuments();
     } else if (activeTab === 'users' && (profile.role === 'main_admin' || profile.role === 'sk_chairman')) {
       fetchUsers();
+    } else if (activeTab === 'overview') {
+      // Fetch all data for overview
+      fetchEvents();
+      if (profile.role !== 'kagawad') {
+        fetchDocuments();
+      }
+      if (profile.role === 'main_admin' || profile.role === 'sk_chairman') {
+        fetchUsers();
+      }
     }
   }, [activeTab, profile]);
 
@@ -410,17 +422,11 @@ const DashboardContent = ({ activeTab, profile }: DashboardContentProps) => {
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button className="w-full justify-start" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New SK Chairman
-                </Button>
+                <AddEventForm onEventAdded={fetchEvents} userProfile={profile} />
+                <AddDocumentForm onDocumentAdded={fetchDocuments} userProfile={profile} />
                 <Button className="w-full justify-start" variant="outline">
                   <Settings className="h-4 w-4 mr-2" />
                   System Settings
-                </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Generate Reports
                 </Button>
               </CardContent>
             </Card>
@@ -488,14 +494,8 @@ const DashboardContent = ({ activeTab, profile }: DashboardContentProps) => {
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button className="w-full justify-start" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New Event
-                </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Create Document
-                </Button>
+                <AddEventForm onEventAdded={fetchEvents} userProfile={profile} />
+                <AddDocumentForm onDocumentAdded={fetchDocuments} userProfile={profile} />
                 <Button className="w-full justify-start" variant="outline">
                   <Users className="h-4 w-4 mr-2" />
                   Manage Kagawads
@@ -555,11 +555,12 @@ const DashboardContent = ({ activeTab, profile }: DashboardContentProps) => {
               <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button className="w-full justify-start" variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                Create New Event
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <AddEventForm onEventAdded={fetchEvents} userProfile={profile} />
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={() => setActiveTab('events')}
+              >
                 <Calendar className="h-4 w-4 mr-2" />
                 View My Events
               </Button>
