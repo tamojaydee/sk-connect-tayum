@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,12 +13,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Upload } from 'lucide-react';
 
-interface DocumentFormData {
-  title: string;
-  description: string;
-  document_type: string;
-  is_public: boolean;
-  file: FileList;
+const documentSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
+  description: z.string().trim().max(1000, "Description must be less than 1000 characters").optional(),
+  document_type: z.string().min(1, "Document type is required"),
+  is_public: z.boolean(),
+  barangay_id: z.string().min(1, "Barangay is required"),
+});
+
+
+type DocumentFormData = z.infer<typeof documentSchema>;
+
+interface Barangay {
+  id: string;
+  name: string;
+  code: string;
 }
 
 interface AddDocumentFormProps {
@@ -28,17 +39,42 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [barangays, setBarangays] = useState<Barangay[]>([]);
   
   const { toast } = useToast();
   
   const form = useForm<DocumentFormData>({
+    resolver: zodResolver(documentSchema),
     defaultValues: {
       title: '',
       description: '',
       document_type: '',
       is_public: false,
+      barangay_id: userProfile?.barangay_id || '',
     },
   });
+
+  useEffect(() => {
+    fetchBarangays();
+  }, []);
+
+  const fetchBarangays = async () => {
+    const { data, error } = await supabase
+      .from('barangays')
+      .select('id, name, code')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching barangays:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load barangays",
+        variant: "destructive",
+      });
+    } else {
+      setBarangays(data || []);
+    }
+  };
 
   const handleFileUpload = async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
@@ -59,15 +95,6 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
   };
 
   const onSubmit = async (data: DocumentFormData) => {
-    if (!userProfile?.barangay_id) {
-      toast({
-        title: "Error",
-        description: "No barangay assigned to your profile",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     
     try {
@@ -85,7 +112,7 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
           document_type: data.document_type,
           is_public: data.is_public,
           file_url: fileUrl,
-          barangay_id: userProfile.barangay_id,
+          barangay_id: data.barangay_id,
           created_by: userProfile.id,
         });
 
@@ -153,6 +180,31 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
             
             <FormField
               control={form.control}
+              name="barangay_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Barangay</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a barangay" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {barangays.map((barangay) => (
+                        <SelectItem key={barangay.id} value={barangay.id}>
+                          {barangay.name} ({barangay.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -172,7 +224,6 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
             <FormField
               control={form.control}
               name="document_type"
-              rules={{ required: "Document type is required" }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Document Type</FormLabel>
