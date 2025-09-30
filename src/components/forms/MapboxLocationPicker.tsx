@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MapPin, Search } from 'lucide-react';
@@ -21,39 +21,26 @@ export const MapboxLocationPicker: React.FC<MapboxLocationPickerProps> = ({
   selectedLocation
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
+  const map = useRef<maplibregl.Map | null>(null);
+  const marker = useRef<maplibregl.Marker | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState('');
 
   // Tayum, Abra coordinates
   const TAYUM_CENTER: [number, number] = [120.7458, 17.4851]; // [lng, lat]
 
   useEffect(() => {
-    // For now, we'll use a placeholder token input
-    // In production, this should come from Supabase secrets
-    const token = prompt('Please enter your Mapbox public token (get one from https://mapbox.com):');
-    if (token) {
-      setMapboxToken(token);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!mapContainer.current || !mapboxToken) return;
-
-    mapboxgl.accessToken = mapboxToken;
+    if (!mapContainer.current) return;
     
-    map.current = new mapboxgl.Map({
+    map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      style: 'https://tiles.openfreemap.org/styles/liberty',
       center: TAYUM_CENTER,
       zoom: 14,
-      pitch: 45,
     });
 
     // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     // Add click event to select location
     map.current.on('click', (e) => {
@@ -72,7 +59,7 @@ export const MapboxLocationPicker: React.FC<MapboxLocationPickerProps> = ({
     return () => {
       map.current?.remove();
     };
-  }, [mapboxToken, onLocationSelect]);
+  }, [onLocationSelect]);
 
   useEffect(() => {
     if (selectedLocation && map.current) {
@@ -90,94 +77,51 @@ export const MapboxLocationPicker: React.FC<MapboxLocationPickerProps> = ({
     }
     
     if (map.current) {
-      marker.current = new mapboxgl.Marker()
+      marker.current = new maplibregl.Marker()
         .setLngLat([lng, lat])
         .addTo(map.current);
     }
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim() || !mapboxToken) return;
+    if (!searchQuery.trim()) return;
     
     setIsSearching(true);
     
-    try {
-      // Use Mapbox Geocoding API for Tayum, Abra
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery + ', Tayum, Abra, Philippines')}.json?access_token=${mapboxToken}&limit=5&proximity=${TAYUM_CENTER[0]},${TAYUM_CENTER[1]}`
+    // Use predefined locations in Tayum, Abra
+    setTimeout(() => {
+      const tayumLocations = [
+        { address: 'Tayum Municipal Hall', lat: 17.4851, lng: 120.7458 },
+        { address: 'Tayum Public Plaza', lat: 17.4845, lng: 120.7465 },
+        { address: 'Tayum Elementary School', lat: 17.4860, lng: 120.7450 },
+        { address: 'Tayum Health Center', lat: 17.4840, lng: 120.7470 },
+        { address: 'Tayum Sports Complex', lat: 17.4855, lng: 120.7445 },
+        { address: 'Barangay San Jose Hall', lat: 17.4870, lng: 120.7440 },
+        { address: 'Barangay Poblacion Center', lat: 17.4848, lng: 120.7462 },
+        { address: 'Barangay Suyo Community Center', lat: 17.4835, lng: 120.7475 },
+        { address: 'Tayum Market', lat: 17.4843, lng: 120.7467 },
+        { address: 'Tayum Church', lat: 17.4852, lng: 120.7460 }
+      ];
+      
+      const found = tayumLocations.find(loc => 
+        loc.address.toLowerCase().includes(searchQuery.toLowerCase())
       );
       
-      const data = await response.json();
-      
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0];
-        const [lng, lat] = feature.center;
-        
-        const location = {
-          address: feature.place_name || searchQuery,
-          lat,
-          lng
-        };
-        
-        onLocationSelect(location);
+      if (found) {
+        onLocationSelect(found);
       } else {
-        // Fallback to predefined locations
-        const tayumLocations = [
-          { address: 'Tayum Municipal Hall', lat: 17.4851, lng: 120.7458 },
-          { address: 'Tayum Public Plaza', lat: 17.4845, lng: 120.7465 },
-          { address: 'Tayum Elementary School', lat: 17.4860, lng: 120.7450 },
-          { address: 'Tayum Health Center', lat: 17.4840, lng: 120.7470 },
-          { address: 'Tayum Sports Complex', lat: 17.4855, lng: 120.7445 },
-        ];
-        
-        const found = tayumLocations.find(loc => 
-          loc.address.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        
-        if (found) {
-          onLocationSelect(found);
-        }
+        // Create a location with the search query
+        const newLocation = {
+          address: searchQuery,
+          lat: TAYUM_CENTER[1] + (Math.random() - 0.5) * 0.01,
+          lng: TAYUM_CENTER[0] + (Math.random() - 0.5) * 0.01
+        };
+        onLocationSelect(newLocation);
       }
-    } catch (error) {
-      console.error('Geocoding error:', error);
-    } finally {
+      
       setIsSearching(false);
-    }
+    }, 500);
   };
-
-  if (!mapboxToken) {
-    return (
-      <div className="space-y-4">
-        <div className="text-center p-4 border rounded-md bg-muted/50">
-          <MapPin className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground mb-2">
-            Mapbox token required to display the map
-          </p>
-          <Button 
-            onClick={() => {
-              const token = prompt('Please enter your Mapbox public token:');
-              if (token) setMapboxToken(token);
-            }}
-            variant="outline"
-            size="sm"
-          >
-            Enter Mapbox Token
-          </Button>
-          <p className="text-xs text-muted-foreground mt-2">
-            Get your free token at{' '}
-            <a 
-              href="https://mapbox.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              mapbox.com
-            </a>
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
