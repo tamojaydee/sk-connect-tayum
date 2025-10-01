@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -20,6 +28,12 @@ interface Survey {
   full_name: string;
   age: number;
   gender: string;
+  contact_number: string | null;
+  email: string | null;
+  address: string | null;
+  has_participated: boolean;
+  participation_type: string | null;
+  available_time: string | null;
   barangay_id: string;
   created_at: string;
   barangays?: {
@@ -36,6 +50,10 @@ export const SurveyAnalytics = ({ barangayId }: SurveyAnalyticsProps) => {
   const [filteredSurveys, setFilteredSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
+  const [editForm, setEditForm] = useState<Survey | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -74,6 +92,51 @@ export const SurveyAnalytics = ({ barangayId }: SurveyAnalyticsProps) => {
       console.error("Error fetching surveys:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleView = (survey: Survey) => {
+    setSelectedSurvey(survey);
+    setViewDialogOpen(true);
+  };
+
+  const handleEdit = (survey: Survey) => {
+    setEditForm(survey);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editForm) return;
+
+    try {
+      const { error } = await supabase
+        .from("surveys")
+        .update({
+          full_name: editForm.full_name,
+          age: editForm.age,
+          gender: editForm.gender,
+          contact_number: editForm.contact_number,
+          email: editForm.email,
+          address: editForm.address,
+        })
+        .eq("id", editForm.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Survey updated successfully",
+      });
+
+      setEditDialogOpen(false);
+      fetchSurveys();
+    } catch (error) {
+      console.error("Error updating survey:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update survey",
+        variant: "destructive",
+      });
     }
   };
 
@@ -260,24 +323,14 @@ export const SurveyAnalytics = ({ barangayId }: SurveyAnalyticsProps) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            toast({
-                              title: "View Survey",
-                              description: "View functionality coming soon",
-                            });
-                          }}
+                          onClick={() => handleView(survey)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            toast({
-                              title: "Edit Survey",
-                              description: "Edit functionality coming soon",
-                            });
-                          }}
+                          onClick={() => handleEdit(survey)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -297,6 +350,140 @@ export const SurveyAnalytics = ({ barangayId }: SurveyAnalyticsProps) => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* View Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Survey Details</DialogTitle>
+            <DialogDescription>Complete survey response information</DialogDescription>
+          </DialogHeader>
+          {selectedSurvey && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Full Name</Label>
+                  <p className="text-sm">{selectedSurvey.full_name}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Age</Label>
+                  <p className="text-sm">{selectedSurvey.age}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Gender</Label>
+                  <p className="text-sm">{selectedSurvey.gender}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Barangay</Label>
+                  <p className="text-sm">{selectedSurvey.barangays?.name || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Email</Label>
+                  <p className="text-sm">{selectedSurvey.email || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Contact Number</Label>
+                  <p className="text-sm">{selectedSurvey.contact_number || "N/A"}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="font-semibold">Address</Label>
+                  <p className="text-sm">{selectedSurvey.address || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Has Participated</Label>
+                  <p className="text-sm">{selectedSurvey.has_participated ? "Yes" : "No"}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Civil Status</Label>
+                  <p className="text-sm">{selectedSurvey.participation_type || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Youth Age Group</Label>
+                  <p className="text-sm">{selectedSurvey.available_time || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Submitted On</Label>
+                  <p className="text-sm">
+                    {new Date(selectedSurvey.created_at).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Survey</DialogTitle>
+            <DialogDescription>Update survey response information</DialogDescription>
+          </DialogHeader>
+          {editForm && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-name">Full Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editForm.full_name}
+                    onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-age">Age</Label>
+                  <Input
+                    id="edit-age"
+                    type="number"
+                    value={editForm.age}
+                    onChange={(e) => setEditForm({ ...editForm, age: parseInt(e.target.value) })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-gender">Gender</Label>
+                  <Input
+                    id="edit-gender"
+                    value={editForm.gender}
+                    onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-email">Email</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={editForm.email || ""}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-contact">Contact Number</Label>
+                  <Input
+                    id="edit-contact"
+                    value={editForm.contact_number || ""}
+                    onChange={(e) => setEditForm({ ...editForm, contact_number: e.target.value })}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="edit-address">Address</Label>
+                  <Input
+                    id="edit-address"
+                    value={editForm.address || ""}
+                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveEdit}>Save Changes</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
