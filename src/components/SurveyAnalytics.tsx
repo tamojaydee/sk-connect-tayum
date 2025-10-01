@@ -1,15 +1,30 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Users, UserCheck, Calendar } from "lucide-react";
+import { Users, UserCheck, Eye, Edit, Trash2, Search } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Survey {
   id: string;
+  full_name: string;
   age: number;
   gender: string;
   barangay_id: string;
   created_at: string;
+  barangays?: {
+    name: string;
+  };
 }
 
 interface SurveyAnalyticsProps {
@@ -18,28 +33,71 @@ interface SurveyAnalyticsProps {
 
 export const SurveyAnalytics = ({ barangayId }: SurveyAnalyticsProps) => {
   const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [filteredSurveys, setFilteredSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchSurveys();
   }, [barangayId]);
 
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredSurveys(surveys);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = surveys.filter(
+        (survey) =>
+          survey.full_name.toLowerCase().includes(query) ||
+          survey.barangays?.name.toLowerCase().includes(query) ||
+          survey.age.toString().includes(query)
+      );
+      setFilteredSurveys(filtered);
+    }
+  }, [searchQuery, surveys]);
+
   const fetchSurveys = async () => {
     try {
-      let query = supabase.from("surveys").select("*");
+      let query = supabase.from("surveys").select("*, barangays(name)");
       
       if (barangayId) {
         query = query.eq("barangay_id", barangayId);
       }
       
-      const { data, error } = await query;
+      const { data, error } = await query.order("created_at", { ascending: false });
       
       if (error) throw error;
       setSurveys(data || []);
+      setFilteredSurveys(data || []);
     } catch (error) {
       console.error("Error fetching surveys:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this survey response?")) return;
+
+    try {
+      const { error } = await supabase.from("surveys").delete().eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Survey deleted successfully",
+      });
+
+      fetchSurveys();
+    } catch (error) {
+      console.error("Error deleting survey:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete survey",
+        variant: "destructive",
+      });
     }
   };
 
@@ -157,6 +215,88 @@ export const SurveyAnalytics = ({ barangayId }: SurveyAnalyticsProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Survey List */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Survey Responses</CardTitle>
+            <div className="flex items-center gap-2 w-80">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, age, or barangay..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Age</TableHead>
+                <TableHead>Barangay</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredSurveys.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    {searchQuery ? "No surveys found matching your search" : "No survey responses yet"}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredSurveys.map((survey) => (
+                  <TableRow key={survey.id}>
+                    <TableCell className="font-medium">{survey.full_name}</TableCell>
+                    <TableCell>{survey.age}</TableCell>
+                    <TableCell>{survey.barangays?.name || "N/A"}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            toast({
+                              title: "View Survey",
+                              description: "View functionality coming soon",
+                            });
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            toast({
+                              title: "Edit Survey",
+                              description: "Edit functionality coming soon",
+                            });
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(survey.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };
