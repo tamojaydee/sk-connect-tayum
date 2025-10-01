@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface SurveyFormData {
   // Profile Section
@@ -45,19 +47,91 @@ interface SurveyFormData {
 
 const Survey = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<Partial<SurveyFormData>>({});
+  const [barangays, setBarangays] = useState<{ id: string; name: string }[]>([]);
+  const [selectedBarangay, setSelectedBarangay] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<SurveyFormData>();
   
   const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;
 
+  useEffect(() => {
+    fetchBarangays();
+  }, []);
+
+  const fetchBarangays = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("barangays")
+        .select("id, name")
+        .order("name");
+      
+      if (error) throw error;
+      setBarangays(data || []);
+    } catch (error) {
+      console.error("Error fetching barangays:", error);
+    }
+  };
+
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
-  const onSubmit = (data: SurveyFormData) => {
-    console.log("Survey completed:", data);
-    // Handle form submission here
+  const onSubmit = async (data: SurveyFormData) => {
+    if (!selectedBarangay) {
+      toast({
+        title: "Error",
+        description: "Please select a barangay",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const surveyData = {
+        barangay_id: selectedBarangay,
+        full_name: `${data.lastName}, ${data.givenName} ${data.middleName || ''} ${data.suffix || ''}`.trim(),
+        age: parseInt(data.age),
+        gender: data.sex,
+        contact_number: data.contactNumber,
+        email: data.emailAddress,
+        address: `${data.purokZone || ''} ${data.barangay}, ${data.cityMunicipality}, ${data.province}`.trim(),
+        has_participated: data.skAssemblyAttended === "yes",
+        participation_type: data.civilStatus,
+        duration_years: null,
+        favorite_activity: data.skAssemblyFrequency,
+        impact_description: data.noSKAssemblyReason,
+        improvement_suggestions: null,
+        interested_in_joining: data.registeredSKVoter === "yes",
+        interest_areas: [],
+        preferred_activities: [],
+        available_time: data.youthAgeGroup,
+      };
+
+      const { error } = await supabase.from("surveys").insert([surveyData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Your survey has been submitted successfully.",
+      });
+
+      // Reset form
+      setCurrentStep(1);
+      setSelectedBarangay("");
+    } catch (error) {
+      console.error("Error submitting survey:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit survey. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -168,11 +242,18 @@ const Survey = () => {
                     </div>
                     <div>
                       <Label htmlFor="barangay">Barangay</Label>
-                      <Input 
-                        id="barangay" 
-                        {...register("barangay", { required: "Barangay is required" })}
-                        className="mt-1"
-                      />
+                      <Select value={selectedBarangay} onValueChange={setSelectedBarangay}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select barangay" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {barangays.map((barangay) => (
+                            <SelectItem key={barangay.id} value={barangay.id}>
+                              {barangay.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label htmlFor="purokZone">Purok/Zone</Label>
@@ -505,9 +586,10 @@ const Survey = () => {
               <Button 
                 type="submit"
                 className="flex items-center gap-2 bg-secondary hover:bg-secondary/90"
+                disabled={isSubmitting}
               >
                 <CheckCircle className="h-4 w-4" />
-                Complete Survey
+                {isSubmitting ? "Submitting..." : "Complete Survey"}
               </Button>
             )}
           </div>

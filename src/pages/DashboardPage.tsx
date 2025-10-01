@@ -9,6 +9,7 @@ import { AddEventForm } from '@/components/forms/AddEventForm';
 import { AddDocumentForm } from '@/components/forms/AddDocumentForm';
 import { EventCard } from '@/components/EventCard';
 import { DocumentCard } from '@/components/DocumentCard';
+import { SurveyAnalytics } from '@/components/SurveyAnalytics';
 import { 
   Users, 
   Calendar, 
@@ -19,7 +20,8 @@ import {
   Plus,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  ClipboardList
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -231,7 +233,10 @@ const DashboardSidebar = ({ profile, activeTab, setActiveTab, onLogout }: Dashbo
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'documents', label: 'Documents', icon: FileText },
     ...(profile.role === 'main_admin' || profile.role === 'sk_chairman' 
-      ? [{ id: 'users', label: 'Users', icon: Users }] 
+      ? [
+          { id: 'users', label: 'Users', icon: Users },
+          { id: 'surveys', label: 'Surveys', icon: ClipboardList }
+        ] 
       : []),
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -778,6 +783,15 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
     );
   };
 
+  const renderSurveys = () => (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Survey Analytics</h2>
+      <SurveyAnalytics 
+        barangayId={profile.role === 'sk_chairman' ? profile.barangay_id : undefined} 
+      />
+    </div>
+  );
+
   const renderSettings = () => (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Settings</h2>
@@ -815,6 +829,8 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
       return renderDocuments();
     case 'users':
       return renderUsers();
+    case 'surveys':
+      return renderSurveys();
     case 'settings':
       return renderSettings();
     default:

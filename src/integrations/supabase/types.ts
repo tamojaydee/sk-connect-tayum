@@ -187,6 +187,86 @@ export type Database = {
           },
         ]
       }
+      surveys: {
+        Row: {
+          address: string | null
+          age: number
+          available_time: string | null
+          barangay_id: string
+          contact_number: string | null
+          created_at: string
+          duration_years: number | null
+          email: string | null
+          favorite_activity: string | null
+          full_name: string
+          gender: string
+          has_participated: boolean
+          id: string
+          impact_description: string | null
+          improvement_suggestions: string | null
+          interest_areas: string[] | null
+          interested_in_joining: boolean
+          participation_type: string | null
+          preferred_activities: string[] | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          age: number
+          available_time?: string | null
+          barangay_id: string
+          contact_number?: string | null
+          created_at?: string
+          duration_years?: number | null
+          email?: string | null
+          favorite_activity?: string | null
+          full_name: string
+          gender: string
+          has_participated?: boolean
+          id?: string
+          impact_description?: string | null
+          improvement_suggestions?: string | null
+          interest_areas?: string[] | null
+          interested_in_joining?: boolean
+          participation_type?: string | null
+          preferred_activities?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          age?: number
+          available_time?: string | null
+          barangay_id?: string
+          contact_number?: string | null
+          created_at?: string
+          duration_years?: number | null
+          email?: string | null
+          favorite_activity?: string | null
+          full_name?: string
+          gender?: string
+          has_participated?: boolean
+          id?: string
+          impact_description?: string | null
+          improvement_suggestions?: string | null
+          interest_areas?: string[] | null
+          interested_in_joining?: boolean
+          participation_type?: string | null
+          preferred_activities?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surveys_barangay_id_fkey"
+            columns: ["barangay_id"]
+            isOneToOne: false
+            referencedRelation: "barangays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
