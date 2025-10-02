@@ -8,7 +8,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroImage from "@/assets/skey-hero-banner.jpg";
+import heroImage from "@/assets/tayum1.jpg";
 
 const HeroSection = () => {
   return (

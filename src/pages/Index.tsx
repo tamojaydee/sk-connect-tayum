@@ -29,9 +29,9 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <HeroSection />
+      <EventsSection />
       <FeatureGrid />
       <DashboardPreview />
-      <EventsSection />
       
       {/* Statistics Section */}
       <section className="py-16 bg-gradient-to-br from-background to-muted/30">

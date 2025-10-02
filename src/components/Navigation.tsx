@@ -11,6 +11,7 @@ import {
   Calendar,
   Settings
 } from "lucide-react";
+import skLogo from "@/assets/sklogo.png";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,9 +29,11 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">SK</span>
-            </div>
+            <img 
+              src={skLogo} 
+              alt="SK Logo" 
+              className="w-10 h-10 object-contain"
+            />
             <div>
               <h1 className="text-xl font-heading font-bold text-foreground">
                 SKey Connect
