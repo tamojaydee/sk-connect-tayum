@@ -20,6 +20,7 @@ import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import DashboardPreview from "@/components/DashboardPreview";
 import FeatureGrid from "@/components/FeatureGrid";
+import { EventsSection } from "@/components/EventsSection";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("overview");
@@ -30,6 +31,7 @@ const Index = () => {
       <HeroSection />
       <FeatureGrid />
       <DashboardPreview />
+      <EventsSection />
       
       {/* Statistics Section */}
       <section className="py-16 bg-gradient-to-br from-background to-muted/30">
