@@ -74,24 +74,31 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     const locationData = parseLocation(event.location);
     if (!locationData.coordinates) return;
 
-    // Initialize map
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: 'https://tiles.openfreemap.org/styles/liberty',
-      center: [locationData.coordinates.lng, locationData.coordinates.lat],
-      zoom: 15,
-    });
+    // Small delay to ensure container is ready
+    const timer = setTimeout(() => {
+      if (!mapContainer.current) return;
 
-    // Add marker
-    new maplibregl.Marker({ color: '#6A669D' })
-      .setLngLat([locationData.coordinates.lng, locationData.coordinates.lat])
-      .addTo(map.current);
+      // Initialize map
+      map.current = new maplibregl.Map({
+        container: mapContainer.current,
+        style: 'https://tiles.openfreemap.org/styles/liberty',
+        center: [locationData.coordinates.lng, locationData.coordinates.lat],
+        zoom: 15,
+      });
 
-    // Add navigation controls
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+      // Add marker
+      new maplibregl.Marker({ color: '#6A669D' })
+        .setLngLat([locationData.coordinates.lng, locationData.coordinates.lat])
+        .addTo(map.current!);
+
+      // Add navigation controls
+      map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       map.current?.remove();
+      map.current = null;
     };
   }, [event, open]);
 
