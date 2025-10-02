@@ -19,6 +19,7 @@ const eventSchema = z.object({
   location: z.string().trim().min(1, "Location is required").max(255, "Location must be less than 255 characters"),
   event_date: z.string().min(1, "Event date is required"),
   barangay_id: z.string().min(1, "Barangay is required"),
+  budget: z.string().optional(),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -43,6 +44,8 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
     lat: number;
     lng: number;
   } | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   
   const { toast } = useToast();
   
@@ -54,6 +57,7 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
       location: '',
       event_date: '',
       barangay_id: userProfile?.barangay_id || '',
+      budget: '',
     },
   });
 
@@ -98,6 +102,18 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
     }
   };
 
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setThumbnailFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     
@@ -112,6 +128,26 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
           })
         : data.location;
 
+      let thumbnailUrl: string | null = null;
+
+      // Upload thumbnail if provided
+      if (thumbnailFile) {
+        const fileExt = thumbnailFile.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('event-thumbnails')
+          .upload(fileName, thumbnailFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('event-thumbnails')
+          .getPublicUrl(fileName);
+        
+        thumbnailUrl = publicUrl;
+      }
+
       const { error } = await supabase
         .from('events')
         .insert({
@@ -121,6 +157,8 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
           event_date: new Date(data.event_date).toISOString(),
           barangay_id: data.barangay_id,
           created_by: userProfile.id,
+          thumbnail_url: thumbnailUrl,
+          budget: data.budget ? parseFloat(data.budget) : null,
         });
 
       if (error) throw error;
@@ -132,6 +170,8 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
 
       form.reset();
       setSelectedLocation(null);
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
       setIsOpen(false);
       onEventAdded();
     } catch (error) {
@@ -264,6 +304,44 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="budget"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Budget (PHP) - Optional</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      placeholder="Enter budget amount"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div>
+              <FormLabel>Event Thumbnail - Optional</FormLabel>
+              <Input 
+                type="file"
+                accept="image/*"
+                onChange={handleThumbnailChange}
+                className="mt-2"
+              />
+              {thumbnailPreview && (
+                <div className="mt-3">
+                  <img 
+                    src={thumbnailPreview} 
+                    alt="Thumbnail preview" 
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
             
             <div className="flex justify-end gap-2">
               <Button 

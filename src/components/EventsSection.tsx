@@ -16,6 +16,8 @@ interface Event {
   event_date: string;
   status: string;
   barangay_id: string;
+  thumbnail_url?: string;
+  budget?: number;
   barangays?: {
     name: string;
   };
@@ -142,9 +144,18 @@ export const EventsSection = () => {
             {filteredEvents.map((event) => (
               <Card 
                 key={event.id} 
-                className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02]"
+                className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] overflow-hidden"
                 onClick={() => handleEventClick(event)}
               >
+                {event.thumbnail_url && (
+                  <div className="w-full h-48 overflow-hidden">
+                    <img 
+                      src={event.thumbnail_url} 
+                      alt={event.title}
+                      className="w-full h-full object-cover transition-transform hover:scale-105"
+                    />
+                  </div>
+                )}
                 <CardContent className="p-6 space-y-4">
                   <div>
                     <h3 className="font-semibold text-lg mb-2">{event.title}</h3>
@@ -164,6 +175,15 @@ export const EventsSection = () => {
                     <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <span className="line-clamp-2">{parseLocation(event.location)}</span>
                   </div>
+
+                  {event.budget && (
+                    <div className="flex items-center justify-between bg-muted/50 px-3 py-2 rounded-md">
+                      <span className="text-xs font-medium">Budget:</span>
+                      <span className="text-sm font-semibold text-primary">
+                        ₱{event.budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  )}
 
                   {event.description && (
                     <p className="text-sm text-muted-foreground line-clamp-3">

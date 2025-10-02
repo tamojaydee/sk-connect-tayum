@@ -13,6 +13,8 @@ interface Event {
   event_date: string;
   status: string;
   created_by: string;
+  thumbnail_url?: string;
+  budget?: number;
   profiles?: {
     full_name: string;
   };
@@ -62,7 +64,16 @@ export const EventCard: React.FC<EventCardProps> = ({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full overflow-hidden">
+      {event.thumbnail_url && (
+        <div className="w-full h-48 overflow-hidden">
+          <img 
+            src={event.thumbnail_url} 
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="flex-1">
@@ -107,6 +118,15 @@ export const EventCard: React.FC<EventCardProps> = ({
       <CardContent className="space-y-3">
         {event.description && (
           <p className="text-muted-foreground">{event.description}</p>
+        )}
+
+        {event.budget && (
+          <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
+            <span className="text-sm font-medium">Budget:</span>
+            <span className="text-lg font-semibold text-primary">
+              ₱{event.budget.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
         )}
         
         <div className="flex items-start gap-2">

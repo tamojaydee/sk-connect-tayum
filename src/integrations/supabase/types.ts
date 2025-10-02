@@ -95,6 +95,7 @@ export type Database = {
       events: {
         Row: {
           barangay_id: string
+          budget: number | null
           created_at: string | null
           created_by: string
           description: string | null
@@ -102,11 +103,13 @@ export type Database = {
           id: string
           location: string | null
           status: string | null
+          thumbnail_url: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
           barangay_id: string
+          budget?: number | null
           created_at?: string | null
           created_by: string
           description?: string | null
@@ -114,11 +117,13 @@ export type Database = {
           id?: string
           location?: string | null
           status?: string | null
+          thumbnail_url?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
           barangay_id?: string
+          budget?: number | null
           created_at?: string | null
           created_by?: string
           description?: string | null
@@ -126,6 +131,7 @@ export type Database = {
           id?: string
           location?: string | null
           status?: string | null
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
         }

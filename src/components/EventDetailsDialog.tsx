@@ -20,6 +20,8 @@ interface Event {
   location: string;
   event_date: string;
   status: string;
+  thumbnail_url?: string;
+  budget?: number;
   barangays?: {
     name: string;
   };
@@ -140,6 +142,16 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         </DialogHeader>
         <DialogDescription className="sr-only">Event details and map location for accessibility</DialogDescription>
 
+        {event.thumbnail_url && (
+          <div className="w-full h-64 overflow-hidden rounded-lg">
+            <img 
+              src={event.thumbnail_url} 
+              alt={event.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
         <div className="space-y-6">
           {/* Event Details */}
           <div className="space-y-4">
@@ -160,6 +172,17 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
               </div>
             )}
           </div>
+
+          {/* Budget */}
+          {event.budget && (
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <h3 className="font-semibold mb-2">Event Budget</h3>
+              <p className="text-2xl font-bold text-primary">
+                ₱{event.budget.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">For transparency and accountability</p>
+            </div>
+          )}
 
           {/* Description */}
           {event.description && (
