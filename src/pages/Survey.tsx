@@ -97,16 +97,16 @@ const Survey = () => {
     }
   };
 
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps));
-  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+  const nextStep = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+  };
+  const prevStep = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
 
   const onSubmit = async (data: SurveyFormData) => {
-    // Prevent accidental submit on earlier steps; advance instead
-    if (currentStep < totalSteps) {
-      nextStep();
-      return;
-    }
-
     if (!selectedBarangay) {
       toast({
         title: "Error",
@@ -593,7 +593,10 @@ const Survey = () => {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={prevStep}
+              onClick={(e) => {
+                e.preventDefault();
+                prevStep(e);
+              }}
               disabled={currentStep === 1}
               className="flex items-center gap-2"
             >
@@ -604,7 +607,10 @@ const Survey = () => {
             {currentStep < totalSteps ? (
               <Button 
                 type="button" 
-                onClick={nextStep}
+                onClick={(e) => {
+                  e.preventDefault();
+                  nextStep(e);
+                }}
                 className="flex items-center gap-2"
               >
                 Next
