@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,6 +7,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, User } from 'lucide-react';
 import { format } from 'date-fns';
 import maplibregl from 'maplibre-gl';
@@ -40,6 +41,12 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  const [showMap, setShowMap] = useState(false);
+
+  // Reset map visibility when opening or switching events
+  useEffect(() => {
+    if (open) setShowMap(false);
+  }, [event?.id, open]);
 
   const parseLocation = (location: string) => {
     try {
@@ -70,7 +77,7 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   };
 
   useEffect(() => {
-    if (!event || !open || !mapContainer.current) return;
+    if (!event || !open || !mapContainer.current || !showMap) return;
 
     const locationData = parseLocation(event.location);
     if (!locationData.coordinates) return;
@@ -114,7 +121,7 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
       map.current?.remove();
       map.current = null;
     };
-  }, [event, open]);
+  }, [event, open, showMap]);
 
   if (!event) return null;
 
@@ -164,12 +171,23 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
           {/* Location */}
           <div>
-            <h3 className="font-semibold mb-2">Location</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold">Location</h3>
+              {locationData.coordinates && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowMap((v) => !v)}
+                >
+                  {showMap ? 'Hide map' : 'Show map'}
+                </Button>
+              )}
+            </div>
             <p className="text-muted-foreground mb-3">{locationData.address}</p>
-            
-            {locationData.coordinates && (
-              <div 
-                ref={mapContainer} 
+
+            {locationData.coordinates && showMap && (
+              <div
+                ref={mapContainer}
                 className="w-full h-[400px] rounded-lg overflow-hidden border border-border"
               />
             )}
