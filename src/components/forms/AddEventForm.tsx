@@ -61,6 +61,20 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
     fetchBarangays();
   }, []);
 
+  const fallbackBarangays: Barangay[] = [
+    { id: "48649d38-1d1e-4479-97a5-fd3091d1e587", name: "Baggalay", code: "BAG" },
+    { id: "0a81c908-dcbd-44df-aea2-09362d996405", name: "Basbasa", code: "BAS" },
+    { id: "1c028f8b-aa45-49ae-8115-cdb01275108b", name: "Budac", code: "BUD" },
+    { id: "c68be595-b80e-43a3-b74b-b01f7a583214", name: "Bumagcat", code: "BUM" },
+    { id: "e9192e9d-c578-467f-89fd-899aaaaebf03", name: "Cabaroan", code: "CAB" },
+    { id: "e5e53e2d-c294-4ac9-b08e-af049ebbc3ce", name: "Deet", code: "DEE" },
+    { id: "014df4c9-e234-4eb9-a39b-28998b23e890", name: "Gaddani", code: "GAD" },
+    { id: "dc9c58fc-a035-4a0e-9a32-e285c976ab51", name: "Patucannay", code: "PAT" },
+    { id: "5a224c8a-4678-448a-a606-b1c059ff4aba", name: "Pias", code: "PIA" },
+    { id: "bc4bfd33-c5d0-4e1a-bb94-d14aadb88991", name: "Poblacion", code: "POB" },
+    { id: "4a59e3b6-4e9a-42f6-a6c6-23cad568bba2", name: "Velasco", code: "VEL" },
+  ];
+
   const fetchBarangays = async () => {
     const { data, error } = await supabase
       .from('barangays')
@@ -71,11 +85,16 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
       console.error('Error fetching barangays:', error);
       toast({
         title: "Error",
-        description: "Failed to load barangays",
-        variant: "destructive",
+        description: "Failed to load barangays; using fallback list.",
+        variant: "default",
       });
+      setBarangays(fallbackBarangays);
+    } else if (!data || data.length === 0) {
+      console.warn('Barangays query returned empty; using fallback list.');
+      toast({ title: 'Using fallback', description: 'Loaded default Tayum barangays.', variant: 'default' });
+      setBarangays(fallbackBarangays);
     } else {
-      setBarangays(data || []);
+      setBarangays(data);
     }
   };
 

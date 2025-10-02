@@ -61,17 +61,39 @@ const Survey = () => {
     fetchBarangays();
   }, []);
 
+  const fallbackBarangays = [
+    { id: "48649d38-1d1e-4479-97a5-fd3091d1e587", name: "Baggalay" },
+    { id: "0a81c908-dcbd-44df-aea2-09362d996405", name: "Basbasa" },
+    { id: "1c028f8b-aa45-49ae-8115-cdb01275108b", name: "Budac" },
+    { id: "c68be595-b80e-43a3-b74b-b01f7a583214", name: "Bumagcat" },
+    { id: "e9192e9d-c578-467f-89fd-899aaaaebf03", name: "Cabaroan" },
+    { id: "e5e53e2d-c294-4ac9-b08e-af049ebbc3ce", name: "Deet" },
+    { id: "014df4c9-e234-4eb9-a39b-28998b23e890", name: "Gaddani" },
+    { id: "dc9c58fc-a035-4a0e-9a32-e285c976ab51", name: "Patucannay" },
+    { id: "5a224c8a-4678-448a-a606-b1c059ff4aba", name: "Pias" },
+    { id: "bc4bfd33-c5d0-4e1a-bb94-d14aadb88991", name: "Poblacion" },
+    { id: "4a59e3b6-4e9a-42f6-a6c6-23cad568bba2", name: "Velasco" },
+  ];
+
   const fetchBarangays = async () => {
     try {
       const { data, error } = await supabase
         .from("barangays")
         .select("id, name")
         .order("name");
-      
+
       if (error) throw error;
-      setBarangays(data || []);
+      if (data && data.length > 0) {
+        setBarangays(data);
+      } else {
+        console.warn("Barangays query returned empty. Using fallback list.");
+        setBarangays(fallbackBarangays);
+        toast({ title: "Using fallback", description: "Loaded default Tayum barangays.", variant: "default" });
+      }
     } catch (error) {
       console.error("Error fetching barangays:", error);
+      setBarangays(fallbackBarangays);
+      toast({ title: "Network issue", description: "Loaded default Tayum barangays.", variant: "default" });
     }
   };
 
@@ -79,6 +101,12 @@ const Survey = () => {
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   const onSubmit = async (data: SurveyFormData) => {
+    // Prevent accidental submit on earlier steps; advance instead
+    if (currentStep < totalSteps) {
+      nextStep();
+      return;
+    }
+
     if (!selectedBarangay) {
       toast({
         title: "Error",
@@ -87,7 +115,7 @@ const Survey = () => {
       });
       return;
     }
-
+  
     setIsSubmitting(true);
     try {
       const surveyData = {
