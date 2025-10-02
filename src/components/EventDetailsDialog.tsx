@@ -77,7 +77,7 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     // Initialize map
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+      style: 'https://tiles.openfreemap.org/styles/liberty',
       center: [locationData.coordinates.lng, locationData.coordinates.lat],
       zoom: 15,
     });
