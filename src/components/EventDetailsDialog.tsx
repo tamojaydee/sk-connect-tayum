@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, User } from 'lucide-react';
@@ -75,6 +76,7 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     if (!locationData.coordinates) return;
 
     // Small delay to ensure container is ready
+    let resizeHandler: (() => void) | null = null;
     const timer = setTimeout(() => {
       if (!mapContainer.current) return;
 
@@ -86,6 +88,13 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         zoom: 15,
       });
 
+      // Ensure proper sizing after dialog animation
+      map.current.once('load', () => {
+        map.current?.resize();
+        setTimeout(() => map.current?.resize(), 200);
+        setTimeout(() => map.current?.resize(), 500);
+      });
+
       // Add marker
       new maplibregl.Marker({ color: '#6A669D' })
         .setLngLat([locationData.coordinates.lng, locationData.coordinates.lat])
@@ -93,10 +102,15 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
       // Add navigation controls
       map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+      // Handle browser resizes
+      resizeHandler = () => map.current?.resize();
+      window.addEventListener('resize', resizeHandler);
     }, 100);
 
     return () => {
       clearTimeout(timer);
+      if (resizeHandler) window.removeEventListener('resize', resizeHandler);
       map.current?.remove();
       map.current = null;
     };
@@ -117,6 +131,7 @@ export const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             </Badge>
           </div>
         </DialogHeader>
+        <DialogDescription className="sr-only">Event details and map location for accessibility</DialogDescription>
 
         <div className="space-y-6">
           {/* Event Details */}
