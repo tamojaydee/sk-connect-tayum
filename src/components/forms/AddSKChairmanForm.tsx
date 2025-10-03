@@ -102,16 +102,14 @@ export const AddSKChairmanForm = ({ onSuccess }: { onSuccess: () => void }) => {
         throw new Error('Failed to create user');
       }
 
-      // Create profile
+      // Update profile (trigger already created it)
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email: validation.data.email,
-          full_name: validation.data.full_name,
+        .update({
           role: 'sk_chairman',
           barangay_id: validation.data.barangay_id,
-        });
+        })
+        .eq('id', authData.user.id);
 
       if (profileError) {
         throw profileError;
