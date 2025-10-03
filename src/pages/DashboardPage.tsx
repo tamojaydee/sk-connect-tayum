@@ -7,9 +7,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { AddEventForm } from '@/components/forms/AddEventForm';
 import { AddDocumentForm } from '@/components/forms/AddDocumentForm';
+import { AddSKChairmanForm } from '@/components/forms/AddSKChairmanForm';
 import { EventCard } from '@/components/EventCard';
 import { DocumentCard } from '@/components/DocumentCard';
 import { SurveyAnalytics } from '@/components/SurveyAnalytics';
+import { BudgetManagement } from '@/components/BudgetManagement';
 import { 
   Users, 
   Calendar, 
@@ -21,7 +23,8 @@ import {
   Edit,
   Trash2,
   Eye,
-  ClipboardList
+  ClipboardList,
+  DollarSign
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -234,6 +237,7 @@ const DashboardSidebar = ({ profile, activeTab, setActiveTab, onLogout }: Dashbo
     { id: 'documents', label: 'Documents', icon: FileText },
     ...(profile.role === 'main_admin' || profile.role === 'sk_chairman' 
       ? [
+          { id: 'budget', label: 'Budget', icon: DollarSign },
           { id: 'users', label: 'Users', icon: Users },
           { id: 'surveys', label: 'Surveys', icon: ClipboardList }
         ] 
@@ -696,10 +700,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
             {profile.role === 'main_admin' ? 'All Users' : 'My Kagawads'}
           </h2>
           {profile.role === 'main_admin' && (
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Plus className="h-4 w-4 mr-2" />
-              Add SK Chairman
-            </Button>
+            <AddSKChairmanForm onSuccess={fetchUsers} />
           )}
         </div>
         
@@ -718,10 +719,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
                   }
                 </p>
                 {profile.role === 'main_admin' && (
-                  <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add First User
-                  </Button>
+                  <AddSKChairmanForm onSuccess={fetchUsers} />
                 )}
               </CardContent>
             </Card>
@@ -792,6 +790,32 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
     </div>
   );
 
+  const renderBudget = () => {
+    if (!profile.barangay_id) {
+      return (
+        <Card>
+          <CardContent className="text-center py-8">
+            <DollarSign className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">No Barangay Assigned</h3>
+            <p className="text-muted-foreground">
+              You need to be assigned to a barangay to manage budgets.
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Budget Management</h2>
+        <BudgetManagement 
+          barangayId={profile.barangay_id} 
+          barangayName={profile.barangays?.name}
+        />
+      </div>
+    );
+  };
+
   const renderSettings = () => (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Settings</h2>
@@ -827,6 +851,8 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
       return renderEvents();
     case 'documents':
       return renderDocuments();
+    case 'budget':
+      return renderBudget();
     case 'users':
       return renderUsers();
     case 'surveys':

@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      barangay_budgets: {
+        Row: {
+          available_budget: number
+          barangay_id: string
+          created_at: string | null
+          id: string
+          total_budget: number
+          updated_at: string | null
+        }
+        Insert: {
+          available_budget?: number
+          barangay_id: string
+          created_at?: string | null
+          id?: string
+          total_budget?: number
+          updated_at?: string | null
+        }
+        Update: {
+          available_budget?: number
+          barangay_id?: string
+          created_at?: string | null
+          id?: string
+          total_budget?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barangay_budgets_barangay_id_fkey"
+            columns: ["barangay_id"]
+            isOneToOne: true
+            referencedRelation: "barangays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       barangays: {
         Row: {
           code: string
@@ -37,6 +72,61 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      budget_transactions: {
+        Row: {
+          amount: number
+          barangay_id: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          related_event_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          barangay_id: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          related_event_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          barangay_id?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          related_event_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_transactions_barangay_id_fkey"
+            columns: ["barangay_id"]
+            isOneToOne: false
+            referencedRelation: "barangays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transactions_related_event_id_fkey"
+            columns: ["related_event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documents: {
         Row: {
