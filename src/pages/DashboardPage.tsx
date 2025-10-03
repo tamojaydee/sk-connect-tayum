@@ -8,6 +8,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { AddEventForm } from '@/components/forms/AddEventForm';
 import { AddDocumentForm } from '@/components/forms/AddDocumentForm';
 import { AddSKChairmanForm } from '@/components/forms/AddSKChairmanForm';
+import { EditUserDialog } from '@/components/forms/EditUserDialog';
 import { EventCard } from '@/components/EventCard';
 import { DocumentCard } from '@/components/DocumentCard';
 import { SurveyAnalytics } from '@/components/SurveyAnalytics';
@@ -289,6 +290,8 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showAddDocument, setShowAddDocument] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (activeTab === 'events') {
@@ -688,6 +691,32 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
     );
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'User deleted successfully',
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete user',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const renderUsers = () => {
     const filteredUsers = profile.role === 'sk_chairman' 
       ? users.filter(user => user.role === 'kagawad' && user.barangay_id === profile.barangay_id)
@@ -704,6 +733,16 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
           )}
         </div>
         
+        {editingUser && (
+          <EditUserDialog
+            user={editingUser}
+            open={!!editingUser}
+            onOpenChange={(open) => !open && setEditingUser(null)}
+            onSuccess={fetchUsers}
+            currentUserRole={profile.role}
+          />
+        )}
+
         <div className="grid gap-4">
           {filteredUsers.length === 0 ? (
             <Card className="text-center py-8">
@@ -740,11 +779,21 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
                       </span>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="hover:bg-primary/10">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="hover:bg-primary/10"
+                        onClick={() => setEditingUser(user)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {profile.role === 'main_admin' && (
-                        <Button variant="outline" size="sm" className="hover:bg-destructive/10">
+                      {profile.role === 'main_admin' && user.id !== profile.id && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="hover:bg-destructive/10"
+                          onClick={() => handleDeleteUser(user.id)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
