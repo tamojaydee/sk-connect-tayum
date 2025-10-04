@@ -32,7 +32,7 @@ const Index = () => {
       <EventsSection />
       
       {/* Transparency Section */}
-      <section className="py-16 bg-background">
+      <section id="transparency" className="py-16 bg-background scroll-mt-20">
         <div className="container mx-auto px-6">
           <TransparencyTab isMainAdmin={false} />
         </div>
