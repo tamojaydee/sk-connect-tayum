@@ -7,9 +7,7 @@ import {
   X, 
   Users, 
   FileText, 
-  BarChart3, 
-  Calendar,
-  Settings
+  Calendar
 } from "lucide-react";
 import skLogo from "@/assets/sklogo.png";
 
@@ -44,16 +42,7 @@ const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             {navItems.map((item) => (
-              item.href.startsWith('/') ? (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.name}</span>
-                </Link>
-              ) : (
+              item.href.startsWith('#') ? (
                 <a
                   key={item.name}
                   href={item.href}
@@ -62,6 +51,15 @@ const Navigation = () => {
                   <item.icon className="h-4 w-4" />
                   <span>{item.name}</span>
                 </a>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.name}</span>
+                </Link>
               )
             ))}
             <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20">
@@ -92,17 +90,7 @@ const Navigation = () => {
           <div className="md:hidden py-4 border-t border-border">
             <div className="space-y-2">
               {navItems.map((item) => (
-                item.href.startsWith('/') ? (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.name}</span>
-                  </Link>
-                ) : (
+                item.href.startsWith('#') ? (
                   <a
                     key={item.name}
                     href={item.href}
@@ -112,6 +100,16 @@ const Navigation = () => {
                     <item.icon className="h-4 w-4" />
                     <span>{item.name}</span>
                   </a>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.name}</span>
+                  </Link>
                 )
               ))}
               <div className="pt-4 space-y-2">
