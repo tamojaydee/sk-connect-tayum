@@ -23,7 +23,7 @@ interface BudgetData {
   barangays: {
     name: string;
     code: string;
-  };
+  } | null;
 }
 
 interface DocumentStats {
@@ -296,7 +296,7 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
                 return (
                   <div key={budget.id} className="space-y-2">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="font-medium">{budget.barangays.name}</span>
+                      <span className="font-medium">{budget.barangays?.name || 'Unknown Barangay'}</span>
                       <span className="text-muted-foreground">
                         ₱{budget.total_budget.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
