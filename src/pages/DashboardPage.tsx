@@ -13,6 +13,7 @@ import { EventCard } from '@/components/EventCard';
 import { DocumentCard } from '@/components/DocumentCard';
 import { SurveyAnalytics } from '@/components/SurveyAnalytics';
 import { BudgetManagement } from '@/components/BudgetManagement';
+import { AllBarangaysBudgetManagement } from '@/components/AllBarangaysBudgetManagement';
 import { TransparencyTab } from '@/components/TransparencyTab';
 import { 
   Users, 
@@ -610,6 +611,17 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
   );
 
   const renderBudget = () => {
+    // Main admins can see all barangay budgets
+    if (profile.role === 'main_admin') {
+      return (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold">Budget Management - All Barangays</h2>
+          <AllBarangaysBudgetManagement />
+        </div>
+      );
+    }
+
+    // SK Chairmen see their own barangay budget
     if (!profile.barangay_id) {
       return (
         <Card>
