@@ -244,33 +244,48 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
+          avatar_url: string | null
           barangay_id: string | null
+          contact_number: string | null
           created_at: string | null
           email: string
+          facebook_url: string | null
           full_name: string
           id: string
           is_active: boolean | null
           role: Database["public"]["Enums"]["user_role"]
+          term_start_date: string | null
           updated_at: string | null
         }
         Insert: {
+          age?: number | null
+          avatar_url?: string | null
           barangay_id?: string | null
+          contact_number?: string | null
           created_at?: string | null
           email: string
+          facebook_url?: string | null
           full_name: string
           id: string
           is_active?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
+          term_start_date?: string | null
           updated_at?: string | null
         }
         Update: {
+          age?: number | null
+          avatar_url?: string | null
           barangay_id?: string | null
+          contact_number?: string | null
           created_at?: string | null
           email?: string
+          facebook_url?: string | null
           full_name?: string
           id?: string
           is_active?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
+          term_start_date?: string | null
           updated_at?: string | null
         }
         Relationships: [
