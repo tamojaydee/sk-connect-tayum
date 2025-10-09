@@ -22,10 +22,10 @@
     --primary-foreground: 0 0% 100%;
     --primary-hover: 245 25% 47%;
 
-    /* Secondary: Green theme (#9ABF80) */
-    --secondary: 95 35% 62%;
-    --secondary-foreground: 215 50% 25%;
-    --secondary-hover: 95 40% 57%;
+    /* Secondary: Pink theme (#E299CC) */
+    --secondary: 320 60% 72%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 320 65% 67%;
 
     /* Governance blue accent */
     --accent: 215 50% 25%; /* 1C325B */
@@ -42,7 +42,7 @@
     --ring: 245 20% 52%;
 
     /* SKey Connect Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(245 20% 52%), hsl(95 35% 62%));
+    --gradient-hero: linear-gradient(135deg, hsl(245 20% 52%), hsl(320 60% 72%));
     --gradient-accent: linear-gradient(90deg, hsl(215 50% 25%), hsl(245 20% 52%));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(40 15% 97%));
     
@@ -89,9 +89,9 @@
     --primary-foreground: 0 0% 100%;
     --primary-hover: 245 30% 65%;
 
-    --secondary: 95 40% 65%;
-    --secondary-foreground: 215 50% 25%;
-    --secondary-hover: 95 45% 70%;
+    --secondary: 320 65% 75%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 320 70% 80%;
 
     --muted: 215 40% 18%;
     --muted-foreground: 215 20% 65%;

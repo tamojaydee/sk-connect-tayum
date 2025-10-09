@@ -27,7 +27,7 @@ const Navigation = () => {
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <img 
               src={skLogo} 
               alt="SK Logo" 
@@ -39,7 +39,7 @@ const Navigation = () => {
               </h1>
               <p className="text-xs text-muted-foreground">Tayum, Abra</p>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
