@@ -79,13 +79,12 @@ const HeroSection = () => {
               variant="outline" 
               size="lg" 
               className="text-lg px-8 py-3 border-primary/20 hover:bg-primary/5"
-              onClick={() => {
-                const element = document.getElementById('transparency');
-                element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
+              asChild
             >
-              <Shield className="mr-2 h-5 w-5" />
-              Learn About Transparency
+              <Link to="/transparency">
+                <Shield className="mr-2 h-5 w-5" />
+                Learn About Transparency
+              </Link>
             </Button>
           </div>
           

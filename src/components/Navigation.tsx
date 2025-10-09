@@ -6,8 +6,9 @@ import {
   Menu, 
   X, 
   Users, 
-  FileText, 
-  Calendar
+  ClipboardList,
+  Calendar,
+  BarChart3
 } from "lucide-react";
 import skLogo from "@/assets/sklogo.png";
 
@@ -15,9 +16,10 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
+    { name: "Events", icon: Calendar, href: "/events" },
+    { name: "Transparency", icon: BarChart3, href: "/transparency" },
     { name: "Profiles", icon: Users, href: "/profiles" },
-    { name: "Documents", icon: FileText, href: "#documents" },
-    { name: "Events", icon: Calendar, href: "#events" },
+    { name: "Survey", icon: ClipboardList, href: "/survey" },
   ];
 
   return (

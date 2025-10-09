@@ -8,6 +8,8 @@ import Survey from "./pages/Survey";
 import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProfilesPage from "./pages/ProfilesPage";
+import EventsPage from "./pages/EventsPage";
+import TransparencyPage from "./pages/TransparencyPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +22,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/transparency" element={<TransparencyPage />} />
           <Route path="/survey" element={<Survey />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />

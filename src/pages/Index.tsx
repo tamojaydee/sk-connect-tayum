@@ -19,8 +19,6 @@ import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import FeatureGrid from "@/components/FeatureGrid";
-import { EventsSection } from "@/components/EventsSection";
-import { TransparencyTab } from "@/components/TransparencyTab";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("overview");
@@ -29,15 +27,6 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <HeroSection />
-      <EventsSection />
-      
-      {/* Transparency Section */}
-      <section id="transparency" className="py-16 bg-background scroll-mt-20">
-        <div className="container mx-auto px-6">
-          <TransparencyTab isMainAdmin={false} />
-        </div>
-      </section>
-      
       <FeatureGrid />
       
       {/* Statistics Section */}
