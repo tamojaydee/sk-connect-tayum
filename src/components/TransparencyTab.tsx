@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, DollarSign, FileText, ClipboardList, Settings, Eye, EyeOff } from 'lucide-react';
+import { Users, DollarSign, FileText, ClipboardList, Settings, Calendar, TrendingUp } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 interface BudgetData {
   id: string;
@@ -39,11 +39,20 @@ interface SurveyData {
   barangay_name: string;
 }
 
+interface EventStats {
+  total: number;
+  upcoming: number;
+  completed: number;
+  thisMonth: number;
+}
+
 interface TransparencyConfig {
   show_active_leaders: boolean;
   show_budget_status: boolean;
   show_documents: boolean;
   show_monthly_survey: boolean;
+  show_events: boolean;
+  show_budget_utilization: boolean;
 }
 
 interface TransparencyTabProps {
@@ -61,11 +70,19 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
     approved: 0,
   });
   const [surveyData, setSurveyData] = useState<SurveyData[]>([]);
+  const [eventStats, setEventStats] = useState<EventStats>({
+    total: 0,
+    upcoming: 0,
+    completed: 0,
+    thisMonth: 0,
+  });
   const [config, setConfig] = useState<TransparencyConfig>({
     show_active_leaders: true,
     show_budget_status: true,
     show_documents: true,
     show_monthly_survey: true,
+    show_events: true,
+    show_budget_utilization: true,
   });
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const { toast } = useToast();
@@ -75,6 +92,7 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
     fetchBudgets();
     fetchDocumentStats();
     fetchMonthlySurveys();
+    fetchEventStats();
     loadConfig();
   }, []);
 
@@ -182,11 +200,39 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
     setSurveyData(surveyDataWithNames);
   };
 
+  const fetchEventStats = async () => {
+    const { data: events, error } = await supabase
+      .from('events')
+      .select('event_date, status');
+
+    if (error) {
+      console.error('Error fetching events:', error);
+      return;
+    }
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const stats = {
+      total: events?.length || 0,
+      upcoming: events?.filter(e => new Date(e.event_date) > now && e.status === 'active').length || 0,
+      completed: events?.filter(e => new Date(e.event_date) < now || e.status === 'completed').length || 0,
+      thisMonth: events?.filter(e => {
+        const eventDate = new Date(e.event_date);
+        return eventDate >= startOfMonth && eventDate <= endOfMonth;
+      }).length || 0,
+    };
+    
+    setEventStats(stats);
+  };
+
+  const COLORS = ['#7c3aed', '#e299cc', '#a78bfa', '#f0abfc', '#c084fc'];
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold">Transparency Dashboard</h2>
-        {isMainAdmin && (
+      {isMainAdmin && (
+        <div className="flex justify-end mb-4">
           <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -247,14 +293,38 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
                   />
                 </div>
 
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="show_events">Events Section</Label>
+                    <p className="text-sm text-muted-foreground">Display event statistics</p>
+                  </div>
+                  <Switch
+                    id="show_events"
+                    checked={config.show_events}
+                    onCheckedChange={(checked) => setConfig({ ...config, show_events: checked })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="show_utilization">Budget Utilization Section</Label>
+                    <p className="text-sm text-muted-foreground">Display budget utilization rates</p>
+                  </div>
+                  <Switch
+                    id="show_utilization"
+                    checked={config.show_budget_utilization}
+                    onCheckedChange={(checked) => setConfig({ ...config, show_budget_utilization: checked })}
+                  />
+                </div>
+
                 <Button onClick={saveConfig} className="w-full">
                   Save Configuration
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Active Leaders Section */}
       {config.show_active_leaders && (
@@ -270,7 +340,7 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
         </Card>
       )}
 
-      {/* Budget Status Section */}
+      {/* Budget Status Section with Pie Chart */}
       {config.show_budget_status && (
         <Card>
           <CardHeader>
@@ -289,31 +359,78 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm">Barangay Allocations</h4>
-              {budgets.map((budget) => {
-                const percentage = overallBudget > 0 ? (budget.total_budget / overallBudget) * 100 : 0;
-                return (
-                  <div key={budget.id} className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-medium">{budget.barangays?.name || 'Unknown Barangay'}</span>
-                      <span className="text-muted-foreground">
-                        ₱{budget.total_budget.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <Progress value={percentage} className="h-2" />
-                    <p className="text-xs text-muted-foreground">
-                      {percentage.toFixed(1)}% of overall budget
-                    </p>
-                  </div>
-                );
-              })}
-              {budgets.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No budget data available
-                </p>
-              )}
-            </div>
+            {budgets.length > 0 ? (
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={budgets.map(b => ({
+                        name: b.barangays?.name || 'Unknown',
+                        value: b.total_budget,
+                      }))}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {budgets.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number) => `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No budget data available
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Budget Utilization Section */}
+      {config.show_budget_utilization && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Budget Utilization
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {budgets.length > 0 ? (
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={budgets.map(b => ({
+                    name: b.barangays?.name || 'Unknown',
+                    utilized: b.total_budget - b.available_budget,
+                    available: b.available_budget,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value: number) => `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    />
+                    <Legend />
+                    <Bar dataKey="utilized" fill="#7c3aed" name="Utilized Budget" />
+                    <Bar dataKey="available" fill="#e299cc" name="Available Budget" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No budget utilization data available
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -344,6 +461,38 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Approved</p>
                 <p className="text-2xl font-bold text-primary">{documentStats.approved}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Events Section */}
+      {config.show_events && (
+        <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-secondary" />
+              Event Statistics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Total Events</p>
+                <p className="text-3xl font-bold text-primary">{eventStats.total}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Upcoming</p>
+                <p className="text-3xl font-bold text-secondary">{eventStats.upcoming}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Completed</p>
+                <p className="text-3xl font-bold text-primary">{eventStats.completed}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">This Month</p>
+                <p className="text-3xl font-bold text-secondary">{eventStats.thisMonth}</p>
               </div>
             </div>
           </CardContent>
