@@ -82,6 +82,7 @@ export type Database = {
           description: string | null
           id: string
           related_event_id: string | null
+          related_project_id: string | null
           transaction_type: string
         }
         Insert: {
@@ -92,6 +93,7 @@ export type Database = {
           description?: string | null
           id?: string
           related_event_id?: string | null
+          related_project_id?: string | null
           transaction_type: string
         }
         Update: {
@@ -102,6 +104,7 @@ export type Database = {
           description?: string | null
           id?: string
           related_event_id?: string | null
+          related_project_id?: string | null
           transaction_type?: string
         }
         Relationships: [
@@ -124,6 +127,13 @@ export type Database = {
             columns: ["related_event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transactions_related_project_id_fkey"
+            columns: ["related_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -291,6 +301,120 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_barangay_id_fkey"
+            columns: ["barangay_id"]
+            isOneToOne: false
+            referencedRelation: "barangays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_comments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          photo_url: string
+          project_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_url: string
+          project_id: string
+          uploaded_by: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_url?: string
+          project_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_photos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          barangay_id: string
+          budget: number | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          progress: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          barangay_id: string
+          budget?: number | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          progress?: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          barangay_id?: string
+          budget?: number | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          progress?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_barangay_id_fkey"
             columns: ["barangay_id"]
             isOneToOne: false
             referencedRelation: "barangays"

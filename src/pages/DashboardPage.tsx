@@ -15,6 +15,10 @@ import { SurveyAnalytics } from '@/components/SurveyAnalytics';
 import { BudgetManagement } from '@/components/BudgetManagement';
 import { AllBarangaysBudgetManagement } from '@/components/AllBarangaysBudgetManagement';
 import { TransparencyTab } from '@/components/TransparencyTab';
+import { ProjectCard } from '@/components/ProjectCard';
+import { ProjectDetailsDialog } from '@/components/ProjectDetailsDialog';
+import { AddProjectForm } from '@/components/forms/AddProjectForm';
+import { EditProjectDialog } from '@/components/forms/EditProjectDialog';
 import { 
   Users, 
   Calendar, 
@@ -26,7 +30,8 @@ import {
   Trash2,
   ClipboardList,
   DollarSign,
-  Eye
+  Eye,
+  FolderKanban
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -239,6 +244,7 @@ const DashboardSidebar = ({ profile, activeTab, setActiveTab, onLogout }: Dashbo
     { id: 'documents', label: 'Documents', icon: FileText },
     ...(profile.role === 'main_admin' || profile.role === 'sk_chairman' 
       ? [
+          { id: 'projects', label: 'Projects', icon: FolderKanban },
           { id: 'budget', label: 'Budget', icon: DollarSign },
           { id: 'users', label: 'Users', icon: Users },
           { id: 'surveys', label: 'Surveys', icon: ClipboardList }
@@ -289,14 +295,23 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
   const [events, setEvents] = useState<Event[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [barangays, setBarangays] = useState<Array<{ id: string; name: string }>>([]);
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showAddDocument, setShowAddDocument] = useState(false);
+  const [showAddProject, setShowAddProject] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [editingProject, setEditingProject] = useState<any>(null);
+  const [showProjectDetails, setShowProjectDetails] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (activeTab === 'events') {
       fetchEvents();
+    } else if (activeTab === 'projects') {
+      fetchProjects();
+      fetchBarangays();
     } else if (activeTab === 'documents' && profile.role !== 'kagawad') {
       fetchDocuments();
     } else if (activeTab === 'users' && (profile.role === 'main_admin' || profile.role === 'sk_chairman')) {
@@ -351,6 +366,41 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
       console.error('Error fetching users:', error);
     } else {
       setUsers(data || []);
+    }
+  };
+
+  const fetchProjects = async () => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        barangays (name),
+        profiles!projects_created_by_fkey (full_name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching projects:', error);
+      toast({
+        title: "Error fetching projects",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setProjects(data || []);
+    }
+  };
+
+  const fetchBarangays = async () => {
+    const { data, error } = await supabase
+      .from('barangays')
+      .select('id, name')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching barangays:', error);
+    } else {
+      setBarangays(data || []);
     }
   };
 
@@ -675,6 +725,102 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
     </div>
   );
 
+  const renderProjects = () => {
+    const canCreateProjects = profile.role === 'main_admin' || profile.role === 'sk_chairman';
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Projects</h2>
+          {canCreateProjects && (
+            <Button onClick={() => setShowAddProject(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Project
+            </Button>
+          )}
+        </div>
+
+        {showAddProject && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Create New Project</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AddProjectForm
+                barangays={barangays}
+                userBarangayId={profile.barangay_id}
+                isMainAdmin={profile.role === 'main_admin'}
+                onSuccess={() => {
+                  setShowAddProject(false);
+                  fetchProjects();
+                }}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map((project) => (
+            <div key={project.id}>
+              <ProjectCard
+                project={project}
+                onClick={() => {
+                  setSelectedProject(project);
+                  setShowProjectDetails(true);
+                }}
+              />
+              {(project.created_by === profile.id || profile.role === 'main_admin') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-2"
+                  onClick={() => setEditingProject(project)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {projects.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-8">
+              <FolderKanban className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-2">No Projects Yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Start by creating your first project
+              </p>
+              {canCreateProjects && (
+                <Button onClick={() => setShowAddProject(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Project
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <ProjectDetailsDialog
+          open={showProjectDetails}
+          onOpenChange={setShowProjectDetails}
+          project={selectedProject}
+        />
+
+        <EditProjectDialog
+          open={!!editingProject}
+          onOpenChange={(open) => !open && setEditingProject(null)}
+          project={editingProject}
+          onSuccess={() => {
+            fetchProjects();
+            setEditingProject(null);
+          }}
+        />
+      </div>
+    );
+  };
+
   switch (activeTab) {
     case 'events':
       return renderEvents();
@@ -682,6 +828,8 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
       return renderTransparency();
     case 'documents':
       return renderDocuments();
+    case 'projects':
+      return renderProjects();
     case 'budget':
       return renderBudget();
     case 'users':
