@@ -9,6 +9,7 @@ import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProfilesPage from "./pages/ProfilesPage";
 import EventsPage from "./pages/EventsPage";
+import ProjectsPage from "./pages/ProjectsPage";
 import TransparencyPage from "./pages/TransparencyPage";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/transparency" element={<TransparencyPage />} />
           <Route path="/survey" element={<Survey />} />
           <Route path="/auth" element={<AuthPage />} />
