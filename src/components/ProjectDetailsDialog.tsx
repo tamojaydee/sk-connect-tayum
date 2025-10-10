@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Image as ImageIcon, Trash2, Upload } from "lucide-react";
 import { format } from "date-fns";
+import { ImageZoomDialog } from "./ImageZoomDialog";
 
 interface Comment {
   id: string;
@@ -49,14 +50,16 @@ interface ProjectDetailsDialogProps {
       full_name: string;
     };
   } | null;
+  showInteractiveFeatures?: boolean;
 }
 
-export const ProjectDetailsDialog = ({ open, onOpenChange, project }: ProjectDetailsDialogProps) => {
+export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteractiveFeatures = true }: ProjectDetailsDialogProps) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -283,26 +286,28 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project }: ProjectDet
           <div>
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold">Photos</h3>
-              <label htmlFor="photo-upload">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={uploading}
-                  asChild
-                >
-                  <span>
-                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-                    Upload Photo
-                  </span>
-                </Button>
-                <input
-                  id="photo-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-              </label>
+              {showInteractiveFeatures && (
+                <label htmlFor="photo-upload">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    asChild
+                  >
+                    <span>
+                      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                      Upload Photo
+                    </span>
+                  </Button>
+                  <input
+                    id="photo-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                </label>
+              )}
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -311,16 +316,19 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project }: ProjectDet
                   <img
                     src={photo.photo_url}
                     alt={photo.caption || "Project photo"}
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => setZoomedImage(photo.photo_url)}
                   />
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleDeletePhoto(photo.id, photo.photo_url)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {showInteractiveFeatures && (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleDeletePhoto(photo.id, photo.photo_url)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                   <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-2 text-xs rounded-b-lg">
                     <p>{photo.profiles?.full_name}</p>
                     <p>{format(new Date(photo.created_at), "MMM dd, yyyy")}</p>
@@ -337,43 +345,51 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project }: ProjectDet
           </div>
 
           {/* Comments Section */}
-          <div>
-            <h3 className="font-semibold mb-4">Comments</h3>
-            
-            <div className="space-y-4 mb-4">
-              {comments.map((comment) => (
-                <div key={comment.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="font-medium">{comment.profiles?.full_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(comment.created_at), "MMM dd, yyyy 'at' h:mm a")}
-                    </p>
+          {showInteractiveFeatures && (
+            <div>
+              <h3 className="font-semibold mb-4">Comments</h3>
+              
+              <div className="space-y-4 mb-4">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="font-medium">{comment.profiles?.full_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(comment.created_at), "MMM dd, yyyy 'at' h:mm a")}
+                      </p>
+                    </div>
+                    <p className="text-muted-foreground">{comment.comment}</p>
                   </div>
-                  <p className="text-muted-foreground">{comment.comment}</p>
-                </div>
-              ))}
-              {comments.length === 0 && (
-                <p className="text-center py-4 text-muted-foreground">No comments yet</p>
-              )}
-            </div>
+                ))}
+                {comments.length === 0 && (
+                  <p className="text-center py-4 text-muted-foreground">No comments yet</p>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Textarea
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              />
-              <Button
-                onClick={handleAddComment}
-                disabled={loading || !newComment.trim()}
-                className="w-full"
-              >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add Comment"}
-              </Button>
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Add a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                />
+                <Button
+                  onClick={handleAddComment}
+                  disabled={loading || !newComment.trim()}
+                  className="w-full"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add Comment"}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </DialogContent>
+
+      <ImageZoomDialog
+        open={!!zoomedImage}
+        onOpenChange={(open) => !open && setZoomedImage(null)}
+        imageUrl={zoomedImage || ""}
+      />
     </Dialog>
   );
 };

@@ -172,6 +172,7 @@ const Index = () => {
         open={showProjectDetails}
         onOpenChange={setShowProjectDetails}
         project={selectedProject}
+        showInteractiveFeatures={false}
       />
     </div>
   );
