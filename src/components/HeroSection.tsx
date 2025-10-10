@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -8,15 +9,33 @@ import {
   CheckCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/tayum1.jpg";
 
 const HeroSection = () => {
+  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchBackgroundImage();
+  }, []);
+
+  const fetchBackgroundImage = async () => {
+    const { data, error } = await supabase
+      .from("homepage_settings")
+      .select("hero_background_url")
+      .single();
+
+    if (data?.hero_background_url) {
+      setBackgroundUrl(data.hero_background_url);
+    }
+  };
+
   return (
     <section className="relative py-20 lg:py-32 overflow-hidden">
       {/* Background image with overlay */}
       <div className="absolute inset-0">
         <img 
-          src={heroImage} 
+          src={backgroundUrl || heroImage}
           alt="SKey Connect - Youth Leadership Platform" 
           className="w-full h-full object-cover"
         />

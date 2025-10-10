@@ -19,6 +19,7 @@ import { ProjectCard } from '@/components/ProjectCard';
 import { ProjectDetailsDialog } from '@/components/ProjectDetailsDialog';
 import { AddProjectForm } from '@/components/forms/AddProjectForm';
 import { EditProjectDialog } from '@/components/forms/EditProjectDialog';
+import PageManagement from '@/components/PageManagement';
 import { 
   Users, 
   Calendar, 
@@ -31,7 +32,8 @@ import {
   ClipboardList,
   DollarSign,
   Eye,
-  FolderKanban
+  FolderKanban,
+  Layout
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -249,6 +251,9 @@ const DashboardSidebar = ({ profile, activeTab, setActiveTab, onLogout }: Dashbo
           { id: 'users', label: 'Users', icon: Users },
           { id: 'surveys', label: 'Surveys', icon: ClipboardList }
         ] 
+      : []),
+    ...(profile.role === 'main_admin'
+      ? [{ id: 'page-management', label: 'Page Management', icon: Layout }]
       : []),
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -836,6 +841,8 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
       return renderUsers();
     case 'surveys':
       return renderSurveys();
+    case 'page-management':
+      return <PageManagement />;
     case 'settings':
       return renderSettings();
     default:

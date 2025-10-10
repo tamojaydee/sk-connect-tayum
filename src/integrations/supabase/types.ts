@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       barangay_budgets: {
         Row: {
           available_budget: number
@@ -252,6 +285,27 @@ export type Database = {
           },
         ]
       }
+      homepage_settings: {
+        Row: {
+          hero_background_url: string | null
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          hero_background_url?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          hero_background_url?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
@@ -442,6 +496,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      slideshow_images: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       surveys: {
         Row: {
