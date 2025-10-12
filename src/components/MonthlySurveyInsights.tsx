@@ -9,7 +9,8 @@ import {
   Users,
   Calendar,
   Target,
-  Lightbulb
+  Lightbulb,
+  Sparkles
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,6 +19,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 interface Survey {
   id: string;
@@ -61,6 +63,8 @@ export const MonthlySurveyInsights = ({ barangayId }: MonthlySurveyInsightsProps
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [insights, setInsights] = useState<InsightData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [aiReport, setAiReport] = useState<string | null>(null);
+  const [loadingAiReport, setLoadingAiReport] = useState(false);
 
   useEffect(() => {
     fetchSurveys();
@@ -79,10 +83,48 @@ export const MonthlySurveyInsights = ({ barangayId }: MonthlySurveyInsightsProps
       if (error) throw error;
       setSurveys(data || []);
       calculateInsights(data || []);
+
+      if (data && data.length > 0) {
+        await generateAiReport(data);
+      }
     } catch (error) {
       console.error("Error fetching surveys:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const generateAiReport = async (surveyData: Survey[]) => {
+    setLoadingAiReport(true);
+    try {
+      const barangayName = surveyData[0]?.barangays?.name;
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-survey-insights`;
+      const headers = {
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      };
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          surveys: surveyData,
+          barangayName: barangayId ? barangayName : undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate AI report');
+      }
+
+      const { report } = await response.json();
+      setAiReport(report);
+    } catch (error) {
+      console.error("Error generating AI report:", error);
+      setAiReport(null);
+    } finally {
+      setLoadingAiReport(false);
     }
   };
 
@@ -253,11 +295,65 @@ export const MonthlySurveyInsights = ({ barangayId }: MonthlySurveyInsightsProps
   return (
     <div className="space-y-6">
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="ai-report">AI Report</TabsTrigger>
           <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
           <TabsTrigger value="feedback">Direct Feedback</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ai-report" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-500" />
+                <CardTitle>AI-Generated Monthly Report</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingAiReport ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Generating AI-powered insights...</p>
+                </div>
+              ) : aiReport ? (
+                <div className="space-y-4">
+                  <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-800">
+                      {aiReport}
+                    </pre>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={() => generateAiReport(surveys)}
+                      variant="outline"
+                      size="sm"
+                      disabled={loadingAiReport}
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Regenerate Report
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Unable to generate AI report. Please try again.
+                  </p>
+                  <Button
+                    onClick={() => generateAiReport(surveys)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate Report
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
