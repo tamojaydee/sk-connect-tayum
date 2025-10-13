@@ -59,18 +59,18 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${profile.id}-${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${profile.id}/${fileName}`;
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
-        .from('documents')
+        .from('avatars')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('documents')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);

@@ -9,6 +9,7 @@ import { AddEventForm } from '@/components/forms/AddEventForm';
 import { AddDocumentForm } from '@/components/forms/AddDocumentForm';
 import { AddSKChairmanForm } from '@/components/forms/AddSKChairmanForm';
 import { EditUserDialog } from '@/components/forms/EditUserDialog';
+import { EditEventDialog } from '@/components/forms/EditEventDialog';
 import { EventCard } from '@/components/EventCard';
 import { DocumentCard } from '@/components/DocumentCard';
 import { SurveyAnalytics } from '@/components/SurveyAnalytics';
@@ -75,6 +76,9 @@ interface Event {
   location: string;
   status: string;
   created_by: string;
+  barangay_id: string;
+  budget?: number;
+  thumbnail_url?: string;
   barangays: {
     name: string;
   };
@@ -319,6 +323,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
   const [showAddDocument, setShowAddDocument] = useState(false);
   const [showAddProject, setShowAddProject] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [editingProject, setEditingProject] = useState<any>(null);
   const [showProjectDetails, setShowProjectDetails] = useState(false);
@@ -439,9 +444,22 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
 
       if (error) {
         console.error('Error deleting event:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete event",
+          variant: "destructive",
+        });
       } else {
+        toast({
+          title: "Success",
+          description: "Event deleted successfully",
+        });
         fetchEvents();
       }
+    };
+
+    const handleEditEvent = (event: Event) => {
+      setEditingEvent(event);
     };
 
     return (
@@ -458,6 +476,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
               key={event.id}
               event={event}
               canEdit={canEditEvents(event)}
+              onEdit={handleEditEvent}
               onDelete={handleDeleteEvent}
             />
           ))}
@@ -469,6 +488,12 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
             </Card>
           )}
         </div>
+        <EditEventDialog
+          event={editingEvent}
+          open={!!editingEvent}
+          onOpenChange={(open) => !open && setEditingEvent(null)}
+          onEventUpdated={fetchEvents}
+        />
       </div>
     );
   };

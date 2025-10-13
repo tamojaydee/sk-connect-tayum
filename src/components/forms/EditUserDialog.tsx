@@ -157,10 +157,10 @@ export const EditUserDialog = ({ user, open, onOpenChange, onSuccess, currentUse
       if (avatarFile) {
         const fileExt = avatarFile.name.split('.').pop();
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `avatars/${fileName}`;
+        const filePath = `${user.id}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('event-thumbnails')
+          .from('avatars')
           .upload(filePath, avatarFile);
 
         if (uploadError) {
@@ -168,7 +168,7 @@ export const EditUserDialog = ({ user, open, onOpenChange, onSuccess, currentUse
         }
 
         const { data: { publicUrl } } = supabase.storage
-          .from('event-thumbnails')
+          .from('avatars')
           .getPublicUrl(filePath);
 
         avatarUrl = publicUrl;
