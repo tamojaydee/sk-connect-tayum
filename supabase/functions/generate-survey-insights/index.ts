@@ -136,17 +136,7 @@ Format the response as JSON with this structure:
       generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     }
 
-    // Clean markdown formatting (remove ## and ** from text)
-    const cleanText = (text: string) => {
-      return text
-        .replace(/#{1,6}\s+/g, '') // Remove markdown headers
-        .replace(/\*\*(.+?)\*\*/g, '$1') // Remove bold formatting
-        .replace(/\*(.+?)\*/g, '$1') // Remove italic formatting
-        .replace(/`(.+?)`/g, '$1') // Remove code formatting
-        .trim();
-    };
-
-    // Try to parse as JSON if recommendations, otherwise return as clean text
+    // Clean markdown formatting and try to parse JSON if recommendations
     let result = generatedText;
     if (reportType === 'recommendations') {
       try {
@@ -160,12 +150,17 @@ Format the response as JSON with this structure:
         }
       } catch (e) {
         console.error('Failed to parse JSON from recommendations:', e);
-        // If parsing fails, return as cleaned text
-        result = cleanText(generatedText);
+        // If parsing fails, return as text
       }
     } else {
-      // For overview reports, clean the markdown formatting
-      result = cleanText(generatedText);
+      // Clean markdown formatting for overview reports
+      result = generatedText
+        .replace(/#{1,6}\s+/g, '') // Remove markdown headers
+        .replace(/\*\*(.+?)\*\*/g, '$1') // Remove bold formatting
+        .replace(/\*(.+?)\*/g, '$1') // Remove italic formatting
+        .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+        .replace(/`(.+?)`/g, '$1') // Remove inline code
+        .trim();
     }
 
     return new Response(
