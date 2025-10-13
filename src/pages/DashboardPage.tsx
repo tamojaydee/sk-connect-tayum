@@ -12,6 +12,7 @@ import { EditUserDialog } from '@/components/forms/EditUserDialog';
 import { EventCard } from '@/components/EventCard';
 import { DocumentCard } from '@/components/DocumentCard';
 import { SurveyAnalytics } from '@/components/SurveyAnalytics';
+import { MonthlySurveyInsights } from '@/components/MonthlySurveyInsights';
 import { BudgetManagement } from '@/components/BudgetManagement';
 import { AllBarangaysBudgetManagement } from '@/components/AllBarangaysBudgetManagement';
 import { TransparencyTab } from '@/components/TransparencyTab';
@@ -309,6 +310,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [editingProject, setEditingProject] = useState<any>(null);
   const [showProjectDetails, setShowProjectDetails] = useState(false);
+  const [surveyTab, setSurveyTab] = useState('insights');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -657,11 +659,38 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
   };
 
   const renderSurveys = () => (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Survey Analytics</h2>
-      <SurveyAnalytics 
-        barangayId={profile.role === 'sk_chairman' ? profile.barangay_id : undefined} 
-      />
+    <div className="space-y-6">
+      <div className="border-b">
+        <nav className="flex gap-4">
+          <button
+            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
+              surveyTab === 'insights'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => setSurveyTab('insights')}
+          >
+            Monthly Insights
+          </button>
+          <button
+            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
+              surveyTab === 'analytics'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => setSurveyTab('analytics')}
+          >
+            Survey Analytics
+          </button>
+        </nav>
+      </div>
+
+      {surveyTab === 'insights' && <MonthlySurveyInsights />}
+      {surveyTab === 'analytics' && (
+        <SurveyAnalytics 
+          barangayId={profile.role === 'sk_chairman' ? profile.barangay_id : undefined} 
+        />
+      )}
     </div>
   );
 
