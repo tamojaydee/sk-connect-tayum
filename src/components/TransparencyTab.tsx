@@ -328,69 +328,114 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
 
       {/* Active Leaders Section */}
       {config.show_active_leaders && (
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base font-medium">Active Leaders</CardTitle>
-            <Users className="h-5 w-5 text-primary" />
+        <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+            <CardTitle className="text-lg font-semibold">Active Leaders</CardTitle>
+            <div className="p-3 bg-primary/10 rounded-full">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-primary">{activeLeadersCount}</div>
-            <p className="text-sm text-muted-foreground mt-1">Currently serving the community</p>
+          <CardContent className="relative">
+            <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              {activeLeadersCount}
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">Currently serving the community</p>
           </CardContent>
         </Card>
       )}
 
       {/* Budget Status Section with Pie Chart */}
       {config.show_budget_status && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              Budget Status
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <DollarSign className="h-6 w-6 text-primary" />
+              Budget Distribution
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
+          <CardContent className="p-8">
+            <div className="mb-8 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/10">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Overall Budget</span>
-                <span className="text-2xl font-bold text-primary">
+                <span className="text-base font-semibold text-muted-foreground">Total Budget</span>
+                <span className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   ₱{overallBudget.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
 
             {budgets.length > 0 ? (
-              <div className="h-80">
+              <div className="h-[500px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
+                    {/* Shadow layer for 3D effect */}
                     <Pie
                       data={budgets.map(b => ({
                         name: b.barangays?.name || 'Unknown',
                         value: b.total_budget,
                       }))}
                       cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={100}
+                      cy="48%"
+                      outerRadius={140}
+                      fill="#00000020"
+                      dataKey="value"
+                      stroke="none"
+                    />
+                    {/* Main pie with 3D effect */}
+                    <Pie
+                      data={budgets.map(b => ({
+                        name: b.barangays?.name || 'Unknown',
+                        value: b.total_budget,
+                      }))}
+                      cx="50%"
+                      cy="45%"
+                      labelLine={true}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                      outerRadius={150}
+                      innerRadius={50}
                       fill="#8884d8"
                       dataKey="value"
+                      paddingAngle={3}
+                      stroke="rgba(255,255,255,0.8)"
+                      strokeWidth={2}
                     >
                       {budgets.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={COLORS[index % COLORS.length]}
+                          style={{
+                            filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))',
+                          }}
+                        />
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number) => `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        padding: '12px',
+                      }}
+                      formatter={(value: number) => [
+                        `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        'Budget'
+                      ]}
                     />
-                    <Legend />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36}
+                      iconType="circle"
+                      wrapperStyle={{
+                        paddingTop: '20px',
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No budget data available
-              </p>
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No budget data available</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -398,38 +443,68 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
 
       {/* Budget Utilization Section */}
       {config.show_budget_utilization && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Budget Utilization
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-secondary/10 to-accent/10 border-b">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <TrendingUp className="h-6 w-6 text-secondary" />
+              Budget Utilization Analysis
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8">
             {budgets.length > 0 ? (
-              <div className="h-80">
+              <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={budgets.map(b => ({
-                    name: b.barangays?.name || 'Unknown',
-                    utilized: b.total_budget - b.available_budget,
-                    available: b.available_budget,
-                  }))}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value: number) => `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  <BarChart 
+                    data={budgets.map(b => ({
+                      name: b.barangays?.name || 'Unknown',
+                      utilized: b.total_budget - b.available_budget,
+                      available: b.available_budget,
+                    }))}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      tick={{ fill: 'hsl(var(--foreground))' }}
                     />
-                    <Legend />
-                    <Bar dataKey="utilized" fill="#7c3aed" name="Utilized Budget" />
-                    <Bar dataKey="available" fill="#e299cc" name="Available Budget" />
+                    <YAxis tick={{ fill: 'hsl(var(--foreground))' }} />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        padding: '12px',
+                      }}
+                      formatter={(value: number) => [
+                        `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                      ]}
+                    />
+                    <Legend 
+                      wrapperStyle={{ paddingTop: '20px' }}
+                      iconType="circle"
+                    />
+                    <Bar 
+                      dataKey="utilized" 
+                      fill="#7c3aed" 
+                      name="Utilized Budget"
+                      radius={[8, 8, 0, 0]}
+                    />
+                    <Bar 
+                      dataKey="available" 
+                      fill="#e299cc" 
+                      name="Available Budget"
+                      radius={[8, 8, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No budget utilization data available
-              </p>
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No budget utilization data available</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -437,30 +512,30 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
 
       {/* Documents Section */}
       {config.show_documents && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Documents
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 border-b">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <FileText className="h-6 w-6 text-primary" />
+              Document Statistics
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{documentStats.total}</p>
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="p-6 bg-gradient-to-br from-muted/50 to-transparent rounded-lg border border-border/50">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Total Documents</p>
+                <p className="text-3xl font-bold text-foreground">{documentStats.total}</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Submitted</p>
-                <p className="text-2xl font-bold text-secondary">{documentStats.submitted}</p>
+              <div className="p-6 bg-gradient-to-br from-secondary/10 to-transparent rounded-lg border border-secondary/20">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Submitted</p>
+                <p className="text-3xl font-bold text-secondary">{documentStats.submitted}</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Under Review</p>
-                <p className="text-2xl font-bold text-amber-500">{documentStats.underReview}</p>
+              <div className="p-6 bg-gradient-to-br from-amber-500/10 to-transparent rounded-lg border border-amber-500/20">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Under Review</p>
+                <p className="text-3xl font-bold text-amber-500">{documentStats.underReview}</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Approved</p>
-                <p className="text-2xl font-bold text-primary">{documentStats.approved}</p>
+              <div className="p-6 bg-gradient-to-br from-primary/10 to-transparent rounded-lg border border-primary/20">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Approved</p>
+                <p className="text-3xl font-bold text-primary">{documentStats.approved}</p>
               </div>
             </div>
           </CardContent>
@@ -469,15 +544,15 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
 
       {/* Events Section */}
       {config.show_events && (
-        <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-secondary" />
+        <Card className="bg-gradient-to-br from-secondary/10 via-secondary/5 to-transparent border-secondary/20 overflow-hidden">
+          <CardHeader className="border-b bg-gradient-to-r from-secondary/10 to-accent/10">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Calendar className="h-6 w-6 text-secondary" />
               Event Statistics
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <CardContent className="p-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Total Events</p>
                 <p className="text-3xl font-bold text-primary">{eventStats.total}</p>
