@@ -533,6 +533,36 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_insights: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          report_type: string
+          survey_month: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          report_type: string
+          survey_month: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          report_type?: string
+          survey_month?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       surveys: {
         Row: {
           address: string | null

@@ -43,7 +43,50 @@ export const MonthlySurveyInsights = () => {
 
   useEffect(() => {
     fetchSurveyData();
+    loadExistingReports();
   }, []);
+
+  const loadExistingReports = async () => {
+    try {
+      const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      
+      // Load overview report
+      const { data: overviewData } = await supabase
+        .from('survey_insights')
+        .select('content')
+        .eq('report_type', 'overview')
+        .eq('survey_month', currentMonth)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (overviewData) {
+        setAiReport(overviewData.content);
+      }
+
+      // Load recommendations
+      const { data: recsData } = await supabase
+        .from('survey_insights')
+        .select('content')
+        .eq('report_type', 'recommendations')
+        .eq('survey_month', currentMonth)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (recsData) {
+        try {
+          const parsed = JSON.parse(recsData.content);
+          setRecommendations(parsed.recommendations || []);
+          setPriorityMatrix(parsed.priorityMatrix || null);
+        } catch (e) {
+          console.error('Error parsing saved recommendations:', e);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading existing reports:', error);
+    }
+  };
 
   const fetchSurveyData = async () => {
     try {
@@ -119,10 +162,23 @@ export const MonthlySurveyInsights = () => {
 
       if (error) throw error;
 
-      setAiReport(data.result);
+      const reportText = data.result;
+      setAiReport(reportText);
+
+      // Save to database
+      const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const { data: session } = await supabase.auth.getSession();
+      
+      await supabase.from('survey_insights').insert({
+        report_type: 'overview',
+        content: reportText,
+        survey_month: currentMonth,
+        created_by: session.session?.user.id
+      });
+
       toast({
         title: "Success",
-        description: "AI report generated successfully",
+        description: "AI report generated and saved successfully",
       });
     } catch (error) {
       console.error("Error generating report:", error);
@@ -153,11 +209,22 @@ export const MonthlySurveyInsights = () => {
       if (typeof data.result === 'object') {
         setRecommendations(data.result.recommendations || []);
         setPriorityMatrix(data.result.priorityMatrix || null);
+
+        // Save to database
+        const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        const { data: session } = await supabase.auth.getSession();
+        
+        await supabase.from('survey_insights').insert({
+          report_type: 'recommendations',
+          content: JSON.stringify(data.result),
+          survey_month: currentMonth,
+          created_by: session.session?.user.id
+        });
       }
 
       toast({
         title: "Success",
-        description: "Recommendations generated successfully",
+        description: "Recommendations generated and saved successfully",
       });
     } catch (error) {
       console.error("Error generating recommendations:", error);
