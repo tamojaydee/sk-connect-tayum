@@ -83,10 +83,6 @@ export const MonthlySurveyInsights = ({ barangayId }: MonthlySurveyInsightsProps
       if (error) throw error;
       setSurveys(data || []);
       calculateInsights(data || []);
-
-      if (data && data.length > 0) {
-        await generateAiReport(data);
-      }
     } catch (error) {
       console.error("Error fetching surveys:", error);
     } finally {
@@ -94,10 +90,11 @@ export const MonthlySurveyInsights = ({ barangayId }: MonthlySurveyInsightsProps
     }
   };
 
-  const generateAiReport = async (surveyData: Survey[]) => {
+  const generateAiReport = async (surveyData?: Survey[]) => {
+    const dataToUse = surveyData || surveys;
     setLoadingAiReport(true);
     try {
-      const barangayName = surveyData[0]?.barangays?.name;
+      const barangayName = dataToUse[0]?.barangays?.name;
 
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-survey-insights`;
       const headers = {
@@ -109,7 +106,7 @@ export const MonthlySurveyInsights = ({ barangayId }: MonthlySurveyInsightsProps
         method: 'POST',
         headers,
         body: JSON.stringify({
-          surveys: surveyData,
+          surveys: dataToUse,
           barangayName: barangayId ? barangayName : undefined,
         }),
       });
@@ -325,7 +322,7 @@ export const MonthlySurveyInsights = ({ barangayId }: MonthlySurveyInsightsProps
                   </div>
                   <div className="flex justify-end">
                     <Button
-                      onClick={() => generateAiReport(surveys)}
+                      onClick={() => generateAiReport()}
                       variant="outline"
                       size="sm"
                       disabled={loadingAiReport}
@@ -337,13 +334,13 @@ export const MonthlySurveyInsights = ({ barangayId }: MonthlySurveyInsightsProps
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <Sparkles className="h-12 w-12 mx-auto mb-4 text-blue-500" />
                   <p className="text-sm text-muted-foreground mb-4">
-                    Unable to generate AI report. Please try again.
+                    Click the button below to generate an AI-powered monthly report analyzing all survey data.
                   </p>
                   <Button
-                    onClick={() => generateAiReport(surveys)}
-                    variant="outline"
+                    onClick={() => generateAiReport()}
+                    variant="default"
                     size="sm"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
