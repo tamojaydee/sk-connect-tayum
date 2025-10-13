@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const GEMINI_API_KEY = "AIzaSyAOLGoVih2zZKBSl3HljqWqlA34DDtwhlk";
+const GEMINI_API_KEY = "AIzaSyA-goCF-QLqP-iKG5WwMkd7-UY_tjfjfj8";
 
 interface Survey {
   id: string;
