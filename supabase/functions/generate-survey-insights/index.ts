@@ -6,6 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+const GEMINI_API_KEY = "AIzaSyAOLGoVih2zZKBSl3HljqWqlA34DDtwhlk";
+
 interface Survey {
   id: string;
   full_name: string;
@@ -85,7 +87,7 @@ Deno.serve(async (req: Request) => {
     const topInterests = Array.from(interestMap.entries())
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 3);
+      .slice(0, 5);
 
     const maleCount = surveys.filter((s) => s.gender === "male").length;
     const femaleCount = surveys.filter((s) => s.gender === "female").length;
@@ -107,93 +109,73 @@ Deno.serve(async (req: Request) => {
       ? `in ${barangayName}`
       : "across all barangays";
 
-    let report = `Monthly Survey Report for ${currentMonthName} ${currentYear}\n\n`;
-
-    report += `This month, ${currentMonthSurveys.length} ${
-      currentMonthSurveys.length === 1 ? "user has" : "users have"
-    } submitted survey responses ${locationContext}. `;
-
-    if (monthlyGrowth > 0) {
-      report += `This represents a ${monthlyGrowth.toFixed(
-        1
-      )}% increase compared to last month, indicating growing engagement with SK programs. `;
-    } else if (monthlyGrowth < 0) {
-      report += `This shows a ${Math.abs(monthlyGrowth).toFixed(
-        1
-      )}% decrease from last month, suggesting a need to boost outreach efforts. `;
-    } else if (lastMonthSurveys.length === 0 && currentMonthSurveys.length > 0) {
-      report += `This is great progress as we had no responses last month. `;
-    }
-
-    report += `\n\nOut of ${surveys.length} total respondents, ${participationRate} ${
-      participationRate === 1 ? "has" : "have"
-    } previously participated in SK activities (${(
-      (participationRate / surveys.length) *
-      100
-    ).toFixed(1)}%). `;
-
-    if ((participationRate / surveys.length) * 100 < 50) {
-      report += `With less than half having prior participation, there's significant opportunity to convert interested youth into active participants. `;
-    } else {
-      report += `This strong participation rate shows good community engagement. `;
-    }
-
-    report += `\n\nThe gender distribution shows ${maleCount} male and ${femaleCount} female respondents. `;
-    const genderRatio = maleCount / femaleCount;
-    if (genderRatio > 1.3) {
-      report += `There's an imbalance with more male respondents, suggesting targeted outreach to female youth could improve representation. `;
-    } else if (genderRatio < 0.77) {
-      report += `Female respondents outnumber males, indicating strong female engagement but potential to reach more male youth. `;
-    } else {
-      report += `This balanced representation across genders is excellent for inclusive programming. `;
-    }
-
-    report += `The average age of respondents is ${averageAge.toFixed(
-      1
-    )} years. `;
-
-    if (topInterests.length > 0) {
-      report += `\n\nThe top interest areas among youth are:\n`;
-      topInterests.forEach((interest, index) => {
-        report += `${index + 1}. ${interest.name} (${interest.count} ${
-          interest.count === 1 ? "respondent" : "respondents"
-        })\n`;
-      });
-      report += `\nThese interests should guide program planning to maximize youth engagement. `;
-    }
-
-    report += `\n\n${interestedInJoining} ${
-      interestedInJoining === 1 ? "respondent has" : "respondents have"
-    } expressed interest in joining SK activities (${(
-      (interestedInJoining / surveys.length) *
-      100
-    ).toFixed(1)}%). `;
-
-    if ((interestedInJoining / surveys.length) * 100 > 30) {
-      report += `This high interest level presents an excellent opportunity to recruit new volunteers and expand program participation. Consider fast-tracking orientation sessions. `;
-    } else if ((interestedInJoining / surveys.length) * 100 < 15) {
-      report += `The relatively low interest suggests a need to better communicate the benefits and impact of SK involvement. Showcasing success stories could help. `;
-    } else {
-      report += `This moderate interest level is a good foundation to build upon through targeted recruitment campaigns. `;
-    }
-
     const suggestions = surveys
       .map((s) => s.improvement_suggestions)
       .filter((s) => s && s.trim() !== "")
-      .slice(0, 3);
+      .slice(0, 10);
 
-    if (suggestions.length > 0) {
-      report += `\n\nYouth have provided ${suggestions.length} improvement suggestions that deserve attention. Review the feedback section to incorporate actionable ideas into planning. `;
+    const prompt = `You are an expert analyst for SK (Sangguniang Kabataan - Youth Council) programs in the Philippines. Analyze the following survey data and generate a comprehensive monthly report.
+
+Survey Data Summary:
+- Location: ${locationContext}
+- Period: ${currentMonthName} ${currentYear}
+- Total Responses: ${surveys.length}
+- Current Month Responses: ${currentMonthSurveys.length}
+- Last Month Responses: ${lastMonthSurveys.length}
+- Monthly Growth: ${monthlyGrowth.toFixed(1)}%
+- Previous Participation Rate: ${participationRate} out of ${surveys.length} (${((participationRate / surveys.length) * 100).toFixed(1)}%)
+- Gender Distribution: ${maleCount} male, ${femaleCount} female
+- Average Age: ${averageAge.toFixed(1)} years
+- Interested in Joining: ${interestedInJoining} out of ${surveys.length} (${((interestedInJoining / surveys.length) * 100).toFixed(1)}%)
+
+Top Interest Areas:
+${topInterests.map((i, idx) => `${idx + 1}. ${i.name} (${i.count} respondents)`).join('\n')}
+
+Youth Improvement Suggestions (sample):
+${suggestions.slice(0, 5).map((s, idx) => `${idx + 1}. "${s}"`).join('\n')}
+
+Please generate a professional, insightful monthly report that includes:
+1. Executive Summary - Key highlights and trends
+2. Engagement Analysis - Discuss participation rates, growth trends, and what they mean
+3. Demographics Insights - Age and gender distribution analysis
+4. Interest Areas - What youth are interested in and implications
+5. Youth Voice - Key themes from improvement suggestions
+6. Strategic Recommendations - 3-5 actionable recommendations based on the data
+7. Conclusion - Overall assessment and next steps
+
+Write in a professional but accessible tone. Be specific with numbers and percentages. Make it actionable for SK leaders.`;
+
+    const geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+          },
+        }),
+      }
+    );
+
+    if (!geminiResponse.ok) {
+      throw new Error(`Gemini API error: ${geminiResponse.status}`);
     }
 
-    report += `\n\nOverall Assessment: `;
-    if (monthlyGrowth > 10 && (participationRate / surveys.length) * 100 > 40) {
-      report += `The SK program is showing strong momentum with growing survey engagement and solid participation rates. Continue current strategies while exploring new initiatives based on youth interests.`;
-    } else if (monthlyGrowth < -10 || (participationRate / surveys.length) * 100 < 30) {
-      report += `There are opportunities to strengthen youth engagement. Focus on increasing visibility through social media, school partnerships, and community events to boost both awareness and participation.`;
-    } else {
-      report += `The SK program is maintaining steady engagement. Focus on converting interested youth into active participants and addressing any gaps in representation or interest areas.`;
-    }
+    const geminiData = await geminiResponse.json();
+    const report = geminiData.candidates[0].content.parts[0].text;
 
     return new Response(JSON.stringify({ report }), {
       headers: {
