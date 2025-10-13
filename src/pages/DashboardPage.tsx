@@ -21,6 +21,8 @@ import { ProjectDetailsDialog } from '@/components/ProjectDetailsDialog';
 import { AddProjectForm } from '@/components/forms/AddProjectForm';
 import { EditProjectDialog } from '@/components/forms/EditProjectDialog';
 import PageManagement from '@/components/PageManagement';
+import { ArchiveTab } from '@/components/ArchiveTab';
+import { ProfileSettings } from '@/components/ProfileSettings';
 import { 
   Users, 
   Calendar, 
@@ -34,7 +36,8 @@ import {
   DollarSign,
   Eye,
   FolderKanban,
-  Layout
+  Layout,
+  Archive
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -224,7 +227,12 @@ const DashboardPage = () => {
             </p>
           </div>
 
-          <DashboardContent activeTab={activeTab} profile={profile} setActiveTab={setActiveTab} />
+          <DashboardContent 
+            activeTab={activeTab} 
+            profile={profile} 
+            setActiveTab={setActiveTab}
+            onProfileUpdate={fetchProfile}
+          />
         </main>
       </div>
     </SidebarProvider>
@@ -254,7 +262,10 @@ const DashboardSidebar = ({ profile, activeTab, setActiveTab, onLogout }: Dashbo
         ] 
       : []),
     ...(profile.role === 'main_admin'
-      ? [{ id: 'page-management', label: 'Page Management', icon: Layout }]
+      ? [
+          { id: 'archive', label: 'Archive', icon: Archive },
+          { id: 'page-management', label: 'Page Management', icon: Layout }
+        ]
       : []),
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -295,9 +306,10 @@ interface DashboardContentProps {
   activeTab: string;
   profile: UserProfile;
   setActiveTab: (tab: string) => void;
+  onProfileUpdate: () => void;
 }
 
-const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContentProps) => {
+const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }: DashboardContentProps) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -734,28 +746,10 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
   const renderSettings = () => (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Settings</h2>
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <strong>Name:</strong> {profile.full_name}
-          </div>
-          <div>
-            <strong>Email:</strong> {profile.email}
-          </div>
-          <div>
-            <strong>Role:</strong> {profile.role.replace('_', ' ').toUpperCase()}
-          </div>
-          {profile.barangays && (
-            <div>
-              <strong>Barangay:</strong> {profile.barangays.name}
-            </div>
-          )}
-          <Button>Edit Profile</Button>
-        </CardContent>
-      </Card>
+      <ProfileSettings 
+        profile={profile} 
+        onProfileUpdate={onProfileUpdate} 
+      />
     </div>
   );
 
@@ -870,6 +864,8 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
       return renderUsers();
     case 'surveys':
       return renderSurveys();
+    case 'archive':
+      return <ArchiveTab />;
     case 'page-management':
       return <PageManagement />;
     case 'settings':

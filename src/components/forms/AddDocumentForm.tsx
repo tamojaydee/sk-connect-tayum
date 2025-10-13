@@ -39,6 +39,7 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedThumbnail, setUploadedThumbnail] = useState<File | null>(null);
   const [barangays, setBarangays] = useState<Barangay[]>([]);
   
   const { toast } = useToast();
@@ -99,9 +100,14 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
     
     try {
       let fileUrl = null;
+      let thumbnailUrl = null;
       
       if (uploadedFile) {
         fileUrl = await handleFileUpload(uploadedFile);
+      }
+
+      if (uploadedThumbnail) {
+        thumbnailUrl = await handleFileUpload(uploadedThumbnail);
       }
 
       const { error } = await supabase
@@ -112,6 +118,7 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
           document_type: data.document_type,
           is_public: data.is_public,
           file_url: fileUrl,
+          thumbnail_url: thumbnailUrl,
           barangay_id: data.barangay_id,
           created_by: userProfile.id,
         });
@@ -125,6 +132,7 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
 
       form.reset();
       setUploadedFile(null);
+      setUploadedThumbnail(null);
       setIsOpen(false);
       onDocumentAdded();
     } catch (error) {
@@ -270,7 +278,7 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
             />
 
             <div className="space-y-2">
-              <FormLabel>File Upload</FormLabel>
+              <FormLabel>Document File</FormLabel>
               <div className="flex items-center gap-2">
                 <Input
                   type="file"
@@ -287,6 +295,28 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
               {uploadedFile && (
                 <p className="text-sm text-muted-foreground">
                   Selected: {uploadedFile.name}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <FormLabel>Thumbnail Image (Optional)</FormLabel>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setUploadedThumbnail(file);
+                    }
+                  }}
+                />
+                <Upload className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {uploadedThumbnail && (
+                <p className="text-sm text-muted-foreground">
+                  Selected: {uploadedThumbnail.name}
                 </p>
               )}
             </div>

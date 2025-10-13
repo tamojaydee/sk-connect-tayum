@@ -14,6 +14,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { BudgetLineChart } from '@/components/BudgetLineChart';
 
 interface BudgetData {
   id: string;
@@ -345,92 +346,78 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
         </Card>
       )}
 
-      {/* Budget Status Section with Pie Chart */}
+      {/* Budget Status Section - Clean Data Display */}
       {config.show_budget_status && (
         <Card className="overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b">
             <CardTitle className="flex items-center gap-2 text-xl">
               <DollarSign className="h-6 w-6 text-primary" />
-              Budget Distribution
+              Budget Overview
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
             <div className="mb-8 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/10">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-4">
                 <span className="text-base font-semibold text-muted-foreground">Total Budget</span>
                 <span className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   ₱{overallBudget.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-base font-semibold text-muted-foreground">Total Available</span>
+                <span className="text-2xl font-bold text-green-600">
+                  ₱{budgets.reduce((sum, b) => sum + b.available_budget, 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
             </div>
 
             {budgets.length > 0 ? (
-              <div className="h-[500px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    {/* Shadow layer for 3D effect */}
-                    <Pie
-                      data={budgets.map(b => ({
-                        name: b.barangays?.name || 'Unknown',
-                        value: b.total_budget,
-                      }))}
-                      cx="50%"
-                      cy="48%"
-                      outerRadius={140}
-                      fill="#00000020"
-                      dataKey="value"
-                      stroke="none"
-                    />
-                    {/* Main pie with 3D effect */}
-                    <Pie
-                      data={budgets.map(b => ({
-                        name: b.barangays?.name || 'Unknown',
-                        value: b.total_budget,
-                      }))}
-                      cx="50%"
-                      cy="45%"
-                      labelLine={true}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
-                      outerRadius={150}
-                      innerRadius={50}
-                      fill="#8884d8"
-                      dataKey="value"
-                      paddingAngle={3}
-                      stroke="rgba(255,255,255,0.8)"
-                      strokeWidth={2}
-                    >
-                      {budgets.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={COLORS[index % COLORS.length]}
-                          style={{
-                            filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))',
-                          }}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                        padding: '12px',
-                      }}
-                      formatter={(value: number) => [
-                        `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                        'Budget'
-                      ]}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      iconType="circle"
-                      wrapperStyle={{
-                        paddingTop: '20px',
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="space-y-4">
+                {budgets.map((budget, index) => {
+                  const utilization = ((budget.total_budget - budget.available_budget) / budget.total_budget) * 100;
+                  return (
+                    <div key={budget.id} className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-semibold text-lg">{budget.barangays?.name || 'Unknown'}</h3>
+                          <p className="text-sm text-muted-foreground">Code: {budget.barangays?.code || 'N/A'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-primary">
+                            ₱{budget.total_budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                          </p>
+                          <p className="text-sm text-muted-foreground">Total Budget</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Available</p>
+                          <p className="text-lg font-semibold text-green-600">
+                            ₱{budget.available_budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Utilized</p>
+                          <p className="text-lg font-semibold text-orange-600">
+                            ₱{(budget.total_budget - budget.available_budget).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-muted-foreground">Utilization</span>
+                          <span className="font-medium">{utilization.toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div
+                            className="bg-gradient-to-r from-primary to-secondary h-2 rounded-full transition-all"
+                            style={{ width: `${utilization}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -440,6 +427,9 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Budget Line Chart */}
+      <BudgetLineChart />
 
       {/* Budget Utilization Section */}
       {config.show_budget_utilization && (
