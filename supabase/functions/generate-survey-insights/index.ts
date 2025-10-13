@@ -143,6 +143,14 @@ Please generate a professional, insightful monthly report that includes:
 6. Strategic Recommendations - 3-5 actionable recommendations based on the data
 7. Conclusion - Overall assessment and next steps
 
+IMPORTANT FORMATTING RULES:
+- DO NOT use markdown formatting (no ##, **, _, etc.)
+- Use plain text only
+- Use simple line breaks and spacing for structure
+- Write section titles in plain text with a colon
+- Even if there are very few participants (1-5), still provide a complete analysis and treat the data seriously
+- Make the report clear, professional, and easy to read without any special formatting
+
 Write in a professional but accessible tone. Be specific with numbers and percentages. Make it actionable for SK leaders.`;
 
     const geminiResponse = await fetch(
