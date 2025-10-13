@@ -12,7 +12,6 @@ import { EditUserDialog } from '@/components/forms/EditUserDialog';
 import { EventCard } from '@/components/EventCard';
 import { DocumentCard } from '@/components/DocumentCard';
 import { SurveyAnalytics } from '@/components/SurveyAnalytics';
-import { MonthlySurveyInsights } from '@/components/MonthlySurveyInsights';
 import { BudgetManagement } from '@/components/BudgetManagement';
 import { AllBarangaysBudgetManagement } from '@/components/AllBarangaysBudgetManagement';
 import { TransparencyTab } from '@/components/TransparencyTab';
@@ -658,38 +657,11 @@ const DashboardContent = ({ activeTab, profile, setActiveTab }: DashboardContent
   };
 
   const renderSurveys = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Survey Management</h2>
-
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Survey Insights</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Data-driven recommendations based on survey responses
-            </p>
-          </CardHeader>
-          <CardContent>
-            <MonthlySurveyInsights
-              barangayId={profile.role === 'sk_chairman' ? profile.barangay_id : undefined}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Survey Analytics</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Detailed survey data and response management
-            </p>
-          </CardHeader>
-          <CardContent>
-            <SurveyAnalytics
-              barangayId={profile.role === 'sk_chairman' ? profile.barangay_id : undefined}
-            />
-          </CardContent>
-        </Card>
-      </div>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Survey Analytics</h2>
+      <SurveyAnalytics 
+        barangayId={profile.role === 'sk_chairman' ? profile.barangay_id : undefined} 
+      />
     </div>
   );
 
