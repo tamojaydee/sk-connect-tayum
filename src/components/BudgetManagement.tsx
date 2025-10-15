@@ -12,7 +12,7 @@ import { z } from 'zod';
 import { logAudit } from '@/lib/auditLog';
 
 const transactionSchema = z.object({
-  amount: z.number().positive('Amount must be positive').max(999999999.99, 'Amount too large'),
+  amount: z.number().positive('Amount must be positive').max(99999999999.99, 'Amount too large'),
   description: z.string().trim().max(500, 'Description must be less than 500 characters').optional(),
 });
 
@@ -227,6 +227,7 @@ export const BudgetManagement = ({ barangayId, barangayName }: { barangayId: str
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999999999.99"
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
