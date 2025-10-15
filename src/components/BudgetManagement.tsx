@@ -111,6 +111,11 @@ export const BudgetManagement = ({ barangayId, barangayName }: { barangayId: str
   const handleTransaction = async (type: 'add' | 'deduct') => {
     setErrors({});
     
+    if (!amount || amount.trim() === '') {
+      setErrors({ amount: 'Amount is required' });
+      return;
+    }
+    
     const validation = transactionSchema.safeParse({
       amount: parseFloat(amount),
       description: description || undefined,
