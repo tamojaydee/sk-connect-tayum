@@ -78,12 +78,27 @@ export const MonthlySurveyInsights = () => {
     try {
       const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       
-      // Load overview report
-      const { data: overviewData } = await supabase
+      // Build query based on user role
+      let overviewQuery = supabase
         .from('survey_insights')
         .select('content')
         .eq('report_type', 'overview')
-        .eq('survey_month', currentMonth)
+        .eq('survey_month', currentMonth);
+
+      let recsQuery = supabase
+        .from('survey_insights')
+        .select('content')
+        .eq('report_type', 'recommendations')
+        .eq('survey_month', currentMonth);
+
+      // Filter by barangay for SK chairmen
+      if (userRole === 'sk_chairman' && userBarangayId) {
+        overviewQuery = overviewQuery.eq('barangay_id', userBarangayId);
+        recsQuery = recsQuery.eq('barangay_id', userBarangayId);
+      }
+
+      // Load overview report
+      const { data: overviewData } = await overviewQuery
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -93,11 +108,7 @@ export const MonthlySurveyInsights = () => {
       }
 
       // Load recommendations
-      const { data: recsData } = await supabase
-        .from('survey_insights')
-        .select('content')
-        .eq('report_type', 'recommendations')
-        .eq('survey_month', currentMonth)
+      const { data: recsData } = await recsQuery
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -200,7 +211,7 @@ export const MonthlySurveyInsights = () => {
       const reportText = data.result;
       setAiReport(reportText);
 
-      // Save to database
+      // Save to database with barangay_id
       const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       const { data: session } = await supabase.auth.getSession();
       
@@ -208,7 +219,8 @@ export const MonthlySurveyInsights = () => {
         report_type: 'overview',
         content: reportText,
         survey_month: currentMonth,
-        created_by: session.session?.user.id
+        created_by: session.session?.user.id,
+        barangay_id: userRole === 'sk_chairman' ? userBarangayId : null
       });
 
       toast({
@@ -245,7 +257,7 @@ export const MonthlySurveyInsights = () => {
         setRecommendations(data.result.recommendations || []);
         setPriorityMatrix(data.result.priorityMatrix || null);
 
-        // Save to database
+        // Save to database with barangay_id
         const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         const { data: session } = await supabase.auth.getSession();
         
@@ -253,7 +265,8 @@ export const MonthlySurveyInsights = () => {
           report_type: 'recommendations',
           content: JSON.stringify(data.result),
           survey_month: currentMonth,
-          created_by: session.session?.user.id
+          created_by: session.session?.user.id,
+          barangay_id: userRole === 'sk_chairman' ? userBarangayId : null
         });
       }
 

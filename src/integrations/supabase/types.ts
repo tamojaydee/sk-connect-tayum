@@ -588,6 +588,7 @@ export type Database = {
       }
       survey_insights: {
         Row: {
+          barangay_id: string | null
           content: string
           created_at: string
           created_by: string | null
@@ -597,6 +598,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          barangay_id?: string | null
           content: string
           created_at?: string
           created_by?: string | null
@@ -606,6 +608,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          barangay_id?: string | null
           content?: string
           created_at?: string
           created_by?: string | null
@@ -614,7 +617,15 @@ export type Database = {
           survey_month?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "survey_insights_barangay_id_fkey"
+            columns: ["barangay_id"]
+            isOneToOne: false
+            referencedRelation: "barangays"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       surveys: {
         Row: {
