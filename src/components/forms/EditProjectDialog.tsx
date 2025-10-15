@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { logAudit } from "@/lib/auditLog";
 
 const editProjectSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -37,6 +38,7 @@ interface EditProjectDialogProps {
     description: string | null;
     status: string;
     progress: number;
+    barangay_id: string;
   } | null;
   onSuccess: () => void;
 }
@@ -91,6 +93,19 @@ export const EditProjectDialog = ({ open, onOpenChange, project, onSuccess }: Ed
         variant: "destructive",
       });
     } else {
+      // Log the audit
+      await logAudit({
+        action: "project_update",
+        tableName: "projects",
+        recordId: project.id,
+        barangayId: project.barangay_id,
+        details: {
+          title: data.title,
+          status: data.status,
+          progress: data.progress,
+        },
+      });
+
       toast({
         title: "Success",
         description: "Project updated successfully",
@@ -121,6 +136,17 @@ export const EditProjectDialog = ({ open, onOpenChange, project, onSuccess }: Ed
         variant: "destructive",
       });
     } else {
+      // Log the audit
+      await logAudit({
+        action: "project_delete",
+        tableName: "projects",
+        recordId: project.id,
+        barangayId: project.barangay_id,
+        details: {
+          title: project.title,
+        },
+      });
+
       toast({
         title: "Success",
         description: "Project deleted successfully",

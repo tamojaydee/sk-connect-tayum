@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 import { MapboxLocationPicker } from './MapboxLocationPicker';
+import { logAudit } from '@/lib/auditLog';
 
 const eventSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
@@ -148,7 +149,7 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
         thumbnailUrl = publicUrl;
       }
 
-      const { error } = await supabase
+      const { data: newEvent, error } = await supabase
         .from('events')
         .insert({
           title: data.title,
@@ -159,9 +160,24 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
           created_by: userProfile.id,
           thumbnail_url: thumbnailUrl,
           budget: data.budget ? parseFloat(data.budget) : null,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Log the audit
+      await logAudit({
+        action: "event_create",
+        tableName: "events",
+        recordId: newEvent.id,
+        barangayId: data.barangay_id,
+        details: {
+          title: data.title,
+          event_date: data.event_date,
+          budget: data.budget ? parseFloat(data.budget) : null,
+        },
+      });
 
       toast({
         title: "Success",

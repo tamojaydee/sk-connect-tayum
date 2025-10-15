@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { logAudit } from "@/lib/auditLog";
 import {
   Select,
   SelectContent,
@@ -65,7 +66,7 @@ export const AddProjectForm = ({ barangays, userBarangayId, isMainAdmin, onSucce
       return;
     }
 
-    const { error } = await supabase.from("projects").insert({
+    const { data: newProject, error } = await supabase.from("projects").insert({
       title: data.title,
       description: data.description || null,
       budget: data.budget ? Number(data.budget) : 0,
@@ -73,7 +74,7 @@ export const AddProjectForm = ({ barangays, userBarangayId, isMainAdmin, onSucce
       created_by: user.id,
       status: "active",
       progress: 0,
-    });
+    }).select().single();
 
     if (error) {
       toast({
@@ -82,6 +83,18 @@ export const AddProjectForm = ({ barangays, userBarangayId, isMainAdmin, onSucce
         variant: "destructive",
       });
     } else {
+      // Log the audit
+      await logAudit({
+        action: "project_create",
+        tableName: "projects",
+        recordId: newProject.id,
+        barangayId: data.barangay_id,
+        details: {
+          title: data.title,
+          budget: data.budget ? Number(data.budget) : 0,
+        },
+      });
+
       toast({
         title: "Success",
         description: "Project created successfully",

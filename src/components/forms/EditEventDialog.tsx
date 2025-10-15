@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { MapboxLocationPicker } from './MapboxLocationPicker';
+import { logAudit } from '@/lib/auditLog';
 
 const eventSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
@@ -203,6 +204,19 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         .eq('id', event.id);
 
       if (error) throw error;
+
+      // Log the audit
+      await logAudit({
+        action: "event_update",
+        tableName: "events",
+        recordId: event.id,
+        barangayId: data.barangay_id,
+        details: {
+          title: data.title,
+          event_date: data.event_date,
+          budget: data.budget ? parseFloat(data.budget) : null,
+        },
+      });
 
       toast({
         title: "Success",
