@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Edit, Trash2, User, Globe, Lock } from 'lucide-react';
+import { FileText, Download, Edit, Trash2, User, Globe, Lock, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { DocumentViewerDialog } from './DocumentViewerDialog';
 
 interface Document {
   id: string;
@@ -32,6 +33,8 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const [viewerOpen, setViewerOpen] = useState(false);
+
   const handleDownload = async () => {
     if (!document.file_url) return;
     
@@ -120,22 +123,42 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
           <p className="text-muted-foreground">{document.description}</p>
         )}
         
-        <div className="flex justify-between items-center pt-2">
+        <div className="flex gap-2 items-center pt-2">
           {document.file_url ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Download PDF
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setViewerOpen(true)}
+                className="gap-2"
+              >
+                <Eye className="h-4 w-4" />
+                View
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+            </>
           ) : (
             <span className="text-sm text-muted-foreground">No file attached</span>
           )}
         </div>
       </CardContent>
+
+      {document.file_url && (
+        <DocumentViewerDialog
+          open={viewerOpen}
+          onOpenChange={setViewerOpen}
+          documentUrl={document.file_url}
+          documentTitle={document.title}
+        />
+      )}
     </Card>
   );
 };
