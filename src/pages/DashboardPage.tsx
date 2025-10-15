@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { logAudit } from '@/lib/auditLog';
 import { User, Session } from '@supabase/supabase-js';
 import { AddEventForm } from '@/components/forms/AddEventForm';
 import { AddDocumentForm } from '@/components/forms/AddDocumentForm';
@@ -440,22 +441,32 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
     const canEditEvents = (event: Event) => event.created_by === profile.id || profile.role === 'main_admin';
 
     const handleDeleteEvent = async (eventId: string) => {
+      const event = events.find((e) => e.id === eventId);
       const { error } = await supabase
         .from('events')
-        .delete()
+        .update({ status: 'archived', archived_at: new Date().toISOString() })
         .eq('id', eventId);
 
       if (error) {
-        console.error('Error deleting event:', error);
+        console.error('Error archiving event:', error);
         toast({
           title: "Error",
-          description: "Failed to delete event",
+          description: "Failed to archive event",
           variant: "destructive",
         });
       } else {
+        // Log the audit
+        await logAudit({
+          action: 'event_archive',
+          tableName: 'events',
+          recordId: eventId,
+          barangayId: event?.barangay_id,
+          details: event ? { title: event.title, budget: event.budget ?? 0 } : undefined,
+        });
+
         toast({
-          title: "Success",
-          description: "Event deleted successfully",
+          title: "Archived",
+          description: "Event moved to Archive",
         });
         fetchEvents();
       }

@@ -117,11 +117,28 @@ export const AuditLogs = () => {
                       {log.barangays?.name || "N/A"}
                     </TableCell>
                     <TableCell>
-                      {log.details && (
-                        <pre className="text-xs max-w-[200px] overflow-x-auto">
-                          {JSON.stringify(log.details, null, 2)}
-                        </pre>
-                      )}
+                    {log.details ? (
+                      typeof log.details === 'object' ? (
+                        <div className="text-xs space-y-1 max-w-[220px]">
+                          {'title' in log.details && (
+                            <div><span className="font-medium">Title:</span> {String(log.details.title)}</div>
+                          )}
+                          {'budget' in log.details && (
+                            <div>
+                              <span className="font-medium">Budget:</span> ₱
+                              {Number(log.details.budget).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                          )}
+                          {Object.keys(log.details).filter(k => k !== 'title' && k !== 'budget').length > 0 && (
+                            <pre className="text-[10px] bg-muted/40 p-2 rounded max-w-[220px] overflow-x-auto">
+                              {JSON.stringify(log.details, null, 2)}
+                            </pre>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs">{String(log.details)}</span>
+                      )
+                    ) : null}
                     </TableCell>
                   </TableRow>
                 ))
