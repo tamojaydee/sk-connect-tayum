@@ -597,9 +597,25 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
     }
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        'https://fllwjnmzpexoxlqtbvxa.supabase.co/functions/v1/delete-user',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
 
-      if (error) throw error;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete user');
+      }
 
       toast({
         title: 'Success',
@@ -687,7 +703,9 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {profile.role === 'main_admin' && user.id !== profile.id && (
+                      {((profile.role === 'main_admin' && (user.role === 'sk_chairman' || user.role === 'kagawad')) ||
+                        (profile.role === 'sk_chairman' && user.role === 'kagawad' && user.barangay_id === profile.barangay_id)) && 
+                        user.id !== profile.id && (
                         <Button 
                           variant="outline" 
                           size="sm" 
