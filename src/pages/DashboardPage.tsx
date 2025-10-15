@@ -18,6 +18,7 @@ import { BudgetManagement } from '@/components/BudgetManagement';
 import { AllBarangaysBudgetManagement } from '@/components/AllBarangaysBudgetManagement';
 import { TransparencyTab } from '@/components/TransparencyTab';
 import { ProjectCard } from '@/components/ProjectCard';
+import { AuditLogs } from '@/components/AuditLogs';
 import { ProjectDetailsDialog } from '@/components/ProjectDetailsDialog';
 import { AddProjectForm } from '@/components/forms/AddProjectForm';
 import { EditProjectDialog } from '@/components/forms/EditProjectDialog';
@@ -38,7 +39,8 @@ import {
   Eye,
   FolderKanban,
   Layout,
-  Archive
+  Archive,
+  FileCheck
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -262,7 +264,8 @@ const DashboardSidebar = ({ profile, activeTab, setActiveTab, onLogout }: Dashbo
           { id: 'projects', label: 'Projects', icon: FolderKanban },
           { id: 'budget', label: 'Budget', icon: DollarSign },
           { id: 'users', label: 'Users', icon: Users },
-          { id: 'surveys', label: 'Surveys', icon: ClipboardList }
+          { id: 'surveys', label: 'Surveys', icon: ClipboardList },
+          { id: 'audit-logs', label: 'Audit Logs', icon: FileCheck }
         ] 
       : []),
     ...(profile.role === 'main_admin'
@@ -889,6 +892,8 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
       return renderUsers();
     case 'surveys':
       return renderSurveys();
+    case 'audit-logs':
+      return <AuditLogs />;
     case 'archive':
       return <ArchiveTab />;
     case 'page-management':
