@@ -231,12 +231,12 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
   const COLORS = ['#7c3aed', '#e299cc', '#a78bfa', '#f0abfc', '#c084fc'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {isMainAdmin && (
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end">
           <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" size="sm">
                 <Settings className="h-4 w-4 mr-2" />
                 Configure Display
               </Button>
@@ -327,122 +327,21 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
         </div>
       )}
 
-      {/* Active Leaders Section */}
-      {config.show_active_leaders && (
-        <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20 overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
-            <CardTitle className="text-lg font-semibold">Active Leaders</CardTitle>
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative">
-            <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              {activeLeadersCount}
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">Currently serving the community</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Budget Status Section - Clean Data Display */}
-      {config.show_budget_status && (
-        <Card className="overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <DollarSign className="h-6 w-6 text-primary" />
-              Budget Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            <div className="mb-8 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/10">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-base font-semibold text-muted-foreground">Total Budget</span>
-                <span className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  ₱{overallBudget.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-base font-semibold text-muted-foreground">Total Available</span>
-                <span className="text-2xl font-bold text-green-600">
-                  ₱{budgets.reduce((sum, b) => sum + b.available_budget, 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-
-            {budgets.length > 0 ? (
-              <div className="space-y-4">
-                {budgets.map((budget, index) => {
-                  const utilization = ((budget.total_budget - budget.available_budget) / budget.total_budget) * 100;
-                  return (
-                    <div key={budget.id} className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="font-semibold text-lg">{budget.barangays?.name || 'Unknown'}</h3>
-                          <p className="text-sm text-muted-foreground">Code: {budget.barangays?.code || 'N/A'}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-primary">
-                            ₱{budget.total_budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                          </p>
-                          <p className="text-sm text-muted-foreground">Total Budget</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Available</p>
-                          <p className="text-lg font-semibold text-green-600">
-                            ₱{budget.available_budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Utilized</p>
-                          <p className="text-lg font-semibold text-orange-600">
-                            ₱{(budget.total_budget - budget.available_budget).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-3">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-muted-foreground">Utilization</span>
-                          <span className="font-medium">{utilization.toFixed(1)}%</span>
-                        </div>
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div
-                            className="bg-gradient-to-r from-primary to-secondary h-2 rounded-full transition-all"
-                            style={{ width: `${utilization}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No budget data available</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Budget Line Chart */}
+      {/* Budget Line Chart - FIRST */}
       <BudgetLineChart />
 
-      {/* Budget Utilization Section */}
+      {/* Budget Utilization Chart - SECOND */}
       {config.show_budget_utilization && (
-        <Card className="overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-secondary/10 to-accent/10 border-b">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <TrendingUp className="h-6 w-6 text-secondary" />
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
               Budget Utilization Analysis
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-8">
+          <CardContent className="pt-6">
             {budgets.length > 0 ? (
-              <div className="h-96">
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart 
                     data={budgets.map(b => ({
@@ -450,7 +349,7 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
                       utilized: b.total_budget - b.available_budget,
                       available: b.available_budget,
                     }))}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    margin={{ top: 10, right: 20, left: 10, bottom: 60 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                     <XAxis 
@@ -458,7 +357,7 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
                       angle={-45}
                       textAnchor="end"
                       height={80}
-                      tick={{ fill: 'hsl(var(--foreground))' }}
+                      tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
                     />
                     <YAxis tick={{ fill: 'hsl(var(--foreground))' }} />
                     <Tooltip 
@@ -466,26 +365,22 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '8px',
-                        padding: '12px',
                       }}
                       formatter={(value: number) => [
-                        `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`,
                       ]}
                     />
-                    <Legend 
-                      wrapperStyle={{ paddingTop: '20px' }}
-                      iconType="circle"
-                    />
+                    <Legend iconType="circle" />
                     <Bar 
                       dataKey="utilized" 
                       fill="#7c3aed" 
-                      name="Utilized Budget"
+                      name="Utilized"
                       radius={[8, 8, 0, 0]}
                     />
                     <Bar 
                       dataKey="available" 
                       fill="#e299cc" 
-                      name="Available Budget"
+                      name="Available"
                       radius={[8, 8, 0, 0]}
                     />
                   </BarChart>
@@ -493,99 +388,128 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">No budget utilization data available</p>
+                <p className="text-muted-foreground">No data available</p>
               </div>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Documents Section */}
-      {config.show_documents && (
-        <Card className="overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 border-b">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <FileText className="h-6 w-6 text-primary" />
-              Document Statistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="p-6 bg-gradient-to-br from-muted/50 to-transparent rounded-lg border border-border/50">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Total Documents</p>
-                <p className="text-3xl font-bold text-foreground">{documentStats.total}</p>
-              </div>
-              <div className="p-6 bg-gradient-to-br from-secondary/10 to-transparent rounded-lg border border-secondary/20">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Submitted</p>
-                <p className="text-3xl font-bold text-secondary">{documentStats.submitted}</p>
-              </div>
-              <div className="p-6 bg-gradient-to-br from-amber-500/10 to-transparent rounded-lg border border-amber-500/20">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Under Review</p>
-                <p className="text-3xl font-bold text-amber-500">{documentStats.underReview}</p>
-              </div>
-              <div className="p-6 bg-gradient-to-br from-primary/10 to-transparent rounded-lg border border-primary/20">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Approved</p>
-                <p className="text-3xl font-bold text-primary">{documentStats.approved}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Key Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-      {/* Events Section */}
-      {config.show_events && (
-        <Card className="bg-gradient-to-br from-secondary/10 via-secondary/5 to-transparent border-secondary/20 overflow-hidden">
-          <CardHeader className="border-b bg-gradient-to-r from-secondary/10 to-accent/10">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Calendar className="h-6 w-6 text-secondary" />
-              Event Statistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Total Events</p>
-                <p className="text-3xl font-bold text-primary">{eventStats.total}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Upcoming</p>
-                <p className="text-3xl font-bold text-secondary">{eventStats.upcoming}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Completed</p>
-                <p className="text-3xl font-bold text-primary">{eventStats.completed}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">This Month</p>
-                <p className="text-3xl font-bold text-secondary">{eventStats.thisMonth}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        {config.show_active_leaders && (
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-medium">Active Leaders</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{activeLeadersCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">Serving the community</p>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Monthly Survey Section */}
-      {config.show_monthly_survey && (
+        {config.show_budget_status && (
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">
+                ₱{overallBudget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Across all barangays</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {config.show_documents && (
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{documentStats.total}</div>
+              <p className="text-xs text-muted-foreground mt-1">Public records</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {config.show_events && (
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{eventStats.upcoming}</div>
+              <p className="text-xs text-muted-foreground mt-1">Scheduled activities</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Budget Status Section - Simplified */}
+      {config.show_budget_status && budgets.length > 0 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="border-b">
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Budget Overview by Barangay
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-3">
+              {budgets.slice(0, 5).map((budget) => {
+                const utilization = ((budget.total_budget - budget.available_budget) / budget.total_budget) * 100;
+                return (
+                  <div key={budget.id} className="p-4 rounded-lg border hover:border-primary/50 transition-colors">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-semibold">{budget.barangays?.name || 'Unknown'}</span>
+                      <span className="text-sm font-bold text-primary">
+                        ₱{budget.total_budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                      <span>Available: ₱{budget.available_budget.toLocaleString('en-PH')}</span>
+                      <span>{utilization.toFixed(1)}% utilized</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all"
+                        style={{ width: `${utilization}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Monthly Survey Section - Simplified */}
+      {config.show_monthly_survey && surveyData.length > 0 && (
+        <Card>
+          <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="h-5 w-5 text-primary" />
-              Monthly Survey Participants
+              Survey Participation This Month
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {surveyData.length > 0 ? (
-              surveyData.map((data) => (
-                <div key={data.barangay_id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                  <span className="font-medium">{data.barangay_name}</span>
-                  <span className="text-2xl font-bold text-primary">{data.survey_count}</span>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {surveyData.map((data) => (
+                <div key={data.barangay_id} className="p-3 rounded-lg border text-center hover:border-primary/50 transition-colors">
+                  <div className="text-2xl font-bold text-primary">{data.survey_count}</div>
+                  <p className="text-xs text-muted-foreground mt-1">{data.barangay_name}</p>
                 </div>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No survey data for this month
-              </p>
-            )}
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

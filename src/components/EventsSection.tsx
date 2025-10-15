@@ -60,6 +60,7 @@ export const EventsSection = () => {
       .from('events')
       .select('*, barangays(name), profiles(full_name)')
       .eq('status', 'active')
+      .is('archived_at', null)
       .order('event_date', { ascending: true });
     
     if (data) setEvents(data);
