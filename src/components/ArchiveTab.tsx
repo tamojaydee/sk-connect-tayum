@@ -9,6 +9,7 @@ import { EventCard } from '@/components/EventCard';
 import { DocumentCard } from '@/components/DocumentCard';
 import { ProjectCard } from '@/components/ProjectCard';
 import { ProjectDetailsDialog } from '@/components/ProjectDetailsDialog';
+import { logAudit } from '@/lib/auditLog';
 
 interface ArchivedItem {
   id: string;
@@ -86,6 +87,16 @@ export const ArchiveTab = () => {
         variant: 'destructive',
       });
     } else {
+      // Log the audit
+      await logAudit({
+        action: `${type.slice(0, -1)}_restore`,
+        tableName: type,
+        recordId: id,
+        details: {
+          restored: true,
+        },
+      });
+
       toast({
         title: 'Restored',
         description: `${type.slice(0, -1)} restored successfully`,
@@ -111,6 +122,16 @@ export const ArchiveTab = () => {
         variant: 'destructive',
       });
     } else {
+      // Log the audit
+      await logAudit({
+        action: `${type.slice(0, -1)}_permanent_delete`,
+        tableName: type,
+        recordId: id,
+        details: {
+          permanently_deleted: true,
+        },
+      });
+
       toast({
         title: 'Deleted',
         description: `${type.slice(0, -1)} permanently deleted`,

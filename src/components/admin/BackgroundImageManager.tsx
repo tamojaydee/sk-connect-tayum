@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Loader2 } from "lucide-react";
+import { logAudit } from "@/lib/auditLog";
 
 export const BackgroundImageManager = () => {
   const [uploading, setUploading] = useState(false);
@@ -58,6 +59,16 @@ export const BackgroundImageManager = () => {
         .eq("id", "00000000-0000-0000-0000-000000000001");
 
       if (updateError) throw updateError;
+
+      // Log the audit
+      await logAudit({
+        action: "homepage_background_update",
+        tableName: "homepage_settings",
+        recordId: "00000000-0000-0000-0000-000000000001",
+        details: {
+          image_url: publicUrl,
+        },
+      });
 
       setCurrentBackground(publicUrl);
       toast({

@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Upload } from 'lucide-react';
+import { logAudit } from '@/lib/auditLog';
 
 const documentSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
@@ -110,7 +111,7 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
         thumbnailUrl = await handleFileUpload(uploadedThumbnail);
       }
 
-      const { error } = await supabase
+      const { data: newDocument, error } = await supabase
         .from('documents')
         .insert({
           title: data.title,
@@ -121,9 +122,24 @@ export const AddDocumentForm: React.FC<AddDocumentFormProps> = ({ onDocumentAdde
           thumbnail_url: thumbnailUrl,
           barangay_id: data.barangay_id,
           created_by: userProfile.id,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Log the audit
+      await logAudit({
+        action: "document_create",
+        tableName: "documents",
+        recordId: newDocument.id,
+        barangayId: data.barangay_id,
+        details: {
+          title: data.title,
+          document_type: data.document_type,
+          is_public: data.is_public,
+        },
+      });
 
       toast({
         title: "Success",

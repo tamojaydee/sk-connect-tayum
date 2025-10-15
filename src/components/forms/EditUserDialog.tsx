@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { Switch } from '@/components/ui/switch';
+import { logAudit } from '@/lib/auditLog';
 
 const editUserSchema = z.object({
   full_name: z.string().trim().min(1, 'Full name is required').max(100, 'Name must be less than 100 characters'),
@@ -194,6 +195,19 @@ export const EditUserDialog = ({ user, open, onOpenChange, onSuccess, currentUse
       if (profileError) {
         throw profileError;
       }
+
+      // Log the audit
+      await logAudit({
+        action: "user_update",
+        tableName: "profiles",
+        recordId: user.id,
+        barangayId: validation.data.barangay_id || undefined,
+        details: {
+          full_name: validation.data.full_name,
+          role: validation.data.role,
+          is_active: validation.data.is_active,
+        },
+      });
 
       toast({
         title: 'Success',

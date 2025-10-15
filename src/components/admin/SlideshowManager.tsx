@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { logAudit } from "@/lib/auditLog";
 
 interface SlideshowImage {
   id: string;
@@ -77,15 +78,25 @@ export const SlideshowManager = () => {
       const { data: userData } = await supabase.auth.getUser();
       const maxOrder = images.length > 0 ? Math.max(...images.map(img => img.display_order)) : -1;
 
-      const { error } = await supabase.from("slideshow_images").insert({
+      const { data: newImage, error } = await supabase.from("slideshow_images").insert({
         title: newTitle,
         description: newDescription || null,
         image_url: publicUrl,
         display_order: maxOrder + 1,
         created_by: userData.user?.id,
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Log the audit
+      await logAudit({
+        action: "slideshow_create",
+        tableName: "slideshow_images",
+        recordId: newImage.id,
+        details: {
+          title: newTitle,
+        },
+      });
 
       setNewTitle("");
       setNewDescription("");
@@ -118,6 +129,14 @@ export const SlideshowManager = () => {
       return;
     }
 
+    // Log the audit
+    await logAudit({
+      action: "slideshow_delete",
+      tableName: "slideshow_images",
+      recordId: id,
+      details: {},
+    });
+
     fetchImages();
     toast({
       title: "Success",
@@ -139,6 +158,16 @@ export const SlideshowManager = () => {
       });
       return;
     }
+
+    // Log the audit
+    await logAudit({
+      action: "slideshow_toggle_active",
+      tableName: "slideshow_images",
+      recordId: id,
+      details: {
+        is_active: !currentActive,
+      },
+    });
 
     fetchImages();
   };

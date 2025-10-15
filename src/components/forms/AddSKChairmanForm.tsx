@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Loader2, Upload } from 'lucide-react';
 import { z } from 'zod';
+import { logAudit } from '@/lib/auditLog';
 
 const skChairmanSchema = z.object({
   email: z.string().email('Invalid email address').max(255, 'Email must be less than 255 characters'),
@@ -202,6 +203,19 @@ export const AddSKChairmanForm = ({ onSuccess }: { onSuccess: () => void }) => {
       if (budgetError && !budgetError.message.includes('duplicate key')) {
         console.warn('Budget initialization warning:', budgetError);
       }
+
+      // Log the audit
+      await logAudit({
+        action: "user_create",
+        tableName: "profiles",
+        recordId: authData.user.id,
+        barangayId: validation.data.barangay_id,
+        details: {
+          full_name: validation.data.full_name,
+          role: 'sk_chairman',
+          email: validation.data.email,
+        },
+      });
 
       toast({
         title: 'Success',

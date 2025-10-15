@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { logAudit } from "@/lib/auditLog";
 
 interface Announcement {
   id: string;
@@ -81,14 +82,24 @@ export const AnnouncementManager = () => {
 
       const { data: userData } = await supabase.auth.getUser();
 
-      const { error } = await supabase.from("announcements").insert({
+      const { data: newAnnouncement, error } = await supabase.from("announcements").insert({
         title: newTitle || null,
         content: newContent || null,
         image_url: imageUrl,
         created_by: userData.user?.id,
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Log the audit
+      await logAudit({
+        action: "announcement_create",
+        tableName: "announcements",
+        recordId: newAnnouncement.id,
+        details: {
+          title: newTitle || null,
+        },
+      });
 
       setNewTitle("");
       setNewContent("");
@@ -121,6 +132,14 @@ export const AnnouncementManager = () => {
       return;
     }
 
+    // Log the audit
+    await logAudit({
+      action: "announcement_delete",
+      tableName: "announcements",
+      recordId: id,
+      details: {},
+    });
+
     fetchAnnouncements();
     toast({
       title: "Success",
@@ -142,6 +161,16 @@ export const AnnouncementManager = () => {
       });
       return;
     }
+
+    // Log the audit
+    await logAudit({
+      action: "announcement_toggle_active",
+      tableName: "announcements",
+      recordId: id,
+      details: {
+        is_active: !currentActive,
+      },
+    });
 
     fetchAnnouncements();
   };
