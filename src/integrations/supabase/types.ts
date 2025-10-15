@@ -147,6 +147,33 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_advisor_chats: {
+        Row: {
+          barangay_id: string
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          barangay_id: string
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          barangay_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       budget_transactions: {
         Row: {
           amount: number

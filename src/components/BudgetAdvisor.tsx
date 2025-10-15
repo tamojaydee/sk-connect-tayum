@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Send, Loader2 } from 'lucide-react';
+import { Sparkles, Send, Loader2, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -16,11 +17,113 @@ export const BudgetAdvisor = () => {
 
   const CHAT_URL = `https://fllwjnmzpexoxlqtbvxa.supabase.co/functions/v1/budget-advisor`;
 
+  // Load chat history on mount
+  useEffect(() => {
+    loadChatHistory();
+  }, []);
+
+  const loadChatHistory = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('barangay_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.barangay_id) return;
+
+      const { data: chatMessages, error } = await supabase
+        .from('budget_advisor_chats')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('barangay_id', profile.barangay_id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (chatMessages) {
+        const loadedMessages: Message[] = chatMessages.map(msg => ({
+          role: msg.role as "user" | "assistant",
+          content: msg.content
+        }));
+        setMessages(loadedMessages);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    }
+  };
+
+  const saveChatMessage = async (role: "user" | "assistant", content: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('barangay_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.barangay_id) return;
+
+      await supabase.from('budget_advisor_chats').insert({
+        user_id: user.id,
+        barangay_id: profile.barangay_id,
+        role,
+        content
+      });
+    } catch (error) {
+      console.error('Error saving chat message:', error);
+    }
+  };
+
+  const resetChat = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('barangay_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.barangay_id) return;
+
+      const { error } = await supabase
+        .from('budget_advisor_chats')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('barangay_id', profile.barangay_id);
+
+      if (error) throw error;
+
+      setMessages([]);
+      toast({
+        title: "Chat reset",
+        description: "Your conversation history has been cleared.",
+      });
+    } catch (error) {
+      console.error('Error resetting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset chat. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const streamChat = async (userMessage: string) => {
     setIsLoading(true);
     const userMsg: Message = { role: "user", content: userMessage };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    
+    // Save user message
+    await saveChatMessage("user", userMessage);
 
     let assistantContent = "";
     
@@ -131,6 +234,11 @@ export const BudgetAdvisor = () => {
           } catch { /* ignore */ }
         }
       }
+      
+      // Save assistant message after streaming is complete
+      if (assistantContent) {
+        await saveChatMessage("assistant", assistantContent);
+      }
     } catch (e) {
       console.error(e);
       toast({
@@ -154,13 +262,28 @@ export const BudgetAdvisor = () => {
   return (
     <Card className="h-[600px] flex flex-col">
       <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          AI Budget Advisor
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Get personalized recommendations on youth programs and budget allocation
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              AI Budget Advisor
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Get personalized recommendations on youth programs and budget allocation
+            </p>
+          </div>
+          {messages.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetChat}
+              disabled={isLoading}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset Chat
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0">
         <ScrollArea className="flex-1 p-4">
