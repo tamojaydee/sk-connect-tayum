@@ -8,8 +8,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Upload, X } from 'lucide-react';
 import { logAudit } from '@/lib/auditLog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const kagawadSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -34,6 +35,9 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<KagawadFormData>({
@@ -46,6 +50,72 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
       facebook_url: '',
     },
   });
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select an image file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please select an image under 5MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const removeAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview('');
+  };
+
+  const uploadAvatar = async (userId: string): Promise<string | null> => {
+    if (!avatarFile) return null;
+
+    setUploading(true);
+    try {
+      const fileExt = avatarFile.name.split('.').pop();
+      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, avatarFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload profile picture',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const onSubmit = async (data: KagawadFormData) => {
     setIsSubmitting(true);
@@ -71,6 +141,12 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
         throw new Error('Failed to create user account');
       }
 
+      // Upload avatar if provided
+      let avatarUrl: string | null = null;
+      if (avatarFile) {
+        avatarUrl = await uploadAvatar(authData.user.id);
+      }
+
       // Update the profile with additional info
       const { error: profileError } = await supabase
         .from('profiles')
@@ -79,6 +155,7 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
           contact_number: data.contact_number || null,
           age: data.age ? parseInt(data.age) : null,
           facebook_url: data.facebook_url || null,
+          avatar_url: avatarUrl,
           term_start_date: new Date().toISOString().split('T')[0],
         })
         .eq('id', authData.user.id);
@@ -105,6 +182,7 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
       });
 
       form.reset();
+      removeAvatar();
       setIsOpen(false);
       onSuccess();
     } catch (error: any) {
@@ -127,12 +205,61 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
           Add Kagawad
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Kagawad</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Avatar Upload */}
+            <div className="space-y-2">
+              <FormLabel>Profile Picture</FormLabel>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={avatarPreview} alt="Preview" />
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    <Upload className="h-8 w-8" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  {!avatarFile ? (
+                    <div>
+                      <Input
+                        id="avatar"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        disabled={isSubmitting || uploading}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('avatar')?.click()}
+                        disabled={isSubmitting || uploading}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Choose Image
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={removeAvatar}
+                      disabled={isSubmitting || uploading}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Remove Image
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Max 5MB (JPG, PNG, GIF)
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <FormField
               control={form.control}
               name="full_name"
