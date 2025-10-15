@@ -130,3 +130,15 @@
     @apply font-heading;
   }
 }
+
+/* Global: remove number input spinners and prevent accidental scroll changes */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
