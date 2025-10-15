@@ -39,12 +39,40 @@ export const MonthlySurveyInsights = () => {
   const [loading, setLoading] = useState(true);
   const [generatingReport, setGeneratingReport] = useState(false);
   const [generatingRecommendations, setGeneratingRecommendations] = useState(false);
+  const [userBarangayId, setUserBarangayId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchSurveyData();
-    loadExistingReports();
+    fetchUserProfile();
   }, []);
+
+  useEffect(() => {
+    if (userRole !== null) {
+      fetchSurveyData();
+      loadExistingReports();
+    }
+  }, [userRole, userBarangayId]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, barangay_id')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile) {
+          setUserRole(profile.role);
+          setUserBarangayId(profile.barangay_id);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const loadExistingReports = async () => {
     try {
@@ -90,9 +118,16 @@ export const MonthlySurveyInsights = () => {
 
   const fetchSurveyData = async () => {
     try {
-      const { data: surveys, error } = await supabase
+      let query = supabase
         .from("surveys")
         .select("*, barangays(name)");
+
+      // Filter by barangay for SK chairmen
+      if (userRole === 'sk_chairman' && userBarangayId) {
+        query = query.eq('barangay_id', userBarangayId);
+      }
+
+      const { data: surveys, error } = await query;
 
       if (error) throw error;
 
