@@ -224,13 +224,20 @@ export const BudgetManagement = ({ barangayId, barangayName }: { barangayId: str
               <Label htmlFor="amount">Amount (₱) *</Label>
               <Input
                 id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999999999.99"
+                type="text"
+                inputMode="decimal"
+                pattern="^[0-9]*([.][0-9]{0,2})?$"
                 placeholder="0.00"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  let v = e.target.value.replace(/,/g, '.');
+                  v = v.replace(/[^0-9.]/g, '');
+                  const parts = v.split('.');
+                  if (parts.length > 2) {
+                    v = parts[0] + '.' + parts.slice(1).join('');
+                  }
+                  setAmount(v);
+                }}
                 disabled={isSubmitting}
               />
               {errors.amount && <p className="text-sm text-destructive">{errors.amount}</p>}
