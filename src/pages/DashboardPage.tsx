@@ -9,6 +9,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { AddEventForm } from '@/components/forms/AddEventForm';
 import { AddDocumentForm } from '@/components/forms/AddDocumentForm';
 import { AddSKChairmanForm } from '@/components/forms/AddSKChairmanForm';
+import { AddKagawadForm } from '@/components/forms/AddKagawadForm';
 import { EditUserDialog } from '@/components/forms/EditUserDialog';
 import { EditEventDialog } from '@/components/forms/EditEventDialog';
 import { EventCard } from '@/components/EventCard';
@@ -647,6 +648,13 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
           {profile.role === 'main_admin' && (
             <AddSKChairmanForm onSuccess={fetchUsers} />
           )}
+          {profile.role === 'sk_chairman' && profile.barangay_id && profile.barangays && (
+            <AddKagawadForm 
+              barangayId={profile.barangay_id}
+              barangayName={profile.barangays.name}
+              onSuccess={fetchUsers}
+            />
+          )}
         </div>
         
         {editingUser && (
@@ -675,6 +683,13 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
                 </p>
                 {profile.role === 'main_admin' && (
                   <AddSKChairmanForm onSuccess={fetchUsers} />
+                )}
+                {profile.role === 'sk_chairman' && profile.barangay_id && profile.barangays && (
+                  <AddKagawadForm 
+                    barangayId={profile.barangay_id}
+                    barangayName={profile.barangays.name}
+                    onSuccess={fetchUsers}
+                  />
                 )}
               </CardContent>
             </Card>
