@@ -23,7 +23,7 @@ export const logAudit = async ({
       return;
     }
 
-    const { error } = await supabase.from("audit_logs").insert({
+    const { data, error } = await supabase.from("audit_logs").insert({
       user_id: user.id,
       action,
       table_name: tableName,
@@ -33,7 +33,9 @@ export const logAudit = async ({
     });
 
     if (error) {
-      console.error("Error logging audit:", error);
+      console.error("Error logging audit:", error.message, error);
+    } else {
+      console.log("Audit log created:", action, tableName);
     }
   } catch (error) {
     console.error("Error in logAudit:", error);
