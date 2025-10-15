@@ -260,7 +260,7 @@ export const BudgetAdvisor = () => {
   };
 
   return (
-    <Card className="h-[600px] flex flex-col">
+    <Card className="flex flex-col max-h-[calc(100vh-12rem)]">
       <CardHeader className="border-b">
         <div className="flex items-center justify-between">
           <div>
@@ -285,7 +285,7 @@ export const BudgetAdvisor = () => {
           )}
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-0">
+      <CardContent className="flex-1 flex flex-col p-0 overflow-hidden min-h-0">
         <ScrollArea className="flex-1 p-4">
           {messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
