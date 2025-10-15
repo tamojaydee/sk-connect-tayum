@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Survey from "./pages/Survey";
 import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
+import KagawadDashboard from "./pages/KagawadDashboard";
 import ProfilesPage from "./pages/ProfilesPage";
 import EventsPage from "./pages/EventsPage";
 import ProjectsPage from "./pages/ProjectsPage";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/survey" element={<Survey />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/kagawad-dashboard" element={<KagawadDashboard />} />
           <Route path="/profiles" element={<ProfilesPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

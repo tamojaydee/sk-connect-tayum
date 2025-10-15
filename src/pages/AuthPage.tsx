@@ -44,12 +44,30 @@ const AuthPage = () => {
         description: error.message,
         variant: "destructive",
       });
-    } else {
+      setIsLoading(false);
+      return;
+    }
+
+    // Get user profile to determine dashboard route
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
       toast({
         title: "Welcome!",
         description: "Successfully logged in to SK Tayum System",
       });
-      navigate('/dashboard');
+
+      // Route based on role
+      if (profile?.role === 'kagawad') {
+        navigate('/kagawad-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     }
     
     setIsLoading(false);
