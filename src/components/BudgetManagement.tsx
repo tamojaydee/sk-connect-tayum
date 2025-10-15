@@ -10,6 +10,7 @@ import { DollarSign, TrendingUp, TrendingDown, Plus, Minus, Loader2 } from 'luci
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { z } from 'zod';
 import { logAudit } from '@/lib/auditLog';
+import { BudgetAdvisor } from './BudgetAdvisor';
 
 const transactionSchema = z.object({
   amount: z.number().positive('Amount must be positive').max(99999999999.99, 'Amount too large'),
@@ -278,6 +279,8 @@ export const BudgetManagement = ({ barangayId, barangayName }: { barangayId: str
 
   return (
     <div className="space-y-6">
+      <BudgetAdvisor />
+      
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

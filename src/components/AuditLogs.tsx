@@ -120,6 +120,18 @@ export const AuditLogs = () => {
                     {log.details ? (
                       typeof log.details === 'object' ? (
                         <div className="text-xs space-y-1 max-w-[220px]">
+                          {'role' in log.details && (
+                            <div><span className="font-medium">Role:</span> {String(log.details.role)}</div>
+                          )}
+                          {'full_name' in log.details && (
+                            <div><span className="font-medium">Name:</span> {String(log.details.full_name)}</div>
+                          )}
+                          {'email' in log.details && (
+                            <div><span className="font-medium">Email:</span> {String(log.details.email)}</div>
+                          )}
+                          {'barangay' in log.details && (
+                            <div><span className="font-medium">Barangay:</span> {String(log.details.barangay)}</div>
+                          )}
                           {'title' in log.details && (
                             <div><span className="font-medium">Title:</span> {String(log.details.title)}</div>
                           )}
@@ -129,10 +141,17 @@ export const AuditLogs = () => {
                               {Number(log.details.budget).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
                           )}
-                          {Object.keys(log.details).filter(k => k !== 'title' && k !== 'budget').length > 0 && (
-                            <pre className="text-[10px] bg-muted/40 p-2 rounded max-w-[220px] overflow-x-auto">
-                              {JSON.stringify(log.details, null, 2)}
-                            </pre>
+                          {'amount' in log.details && (
+                            <div>
+                              <span className="font-medium">Amount:</span> ₱
+                              {Number(log.details.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                          )}
+                          {'transaction_type' in log.details && (
+                            <div><span className="font-medium">Type:</span> {String(log.details.transaction_type)}</div>
+                          )}
+                          {'description' in log.details && log.details.description && (
+                            <div><span className="font-medium">Description:</span> {String(log.details.description)}</div>
                           )}
                         </div>
                       ) : (
