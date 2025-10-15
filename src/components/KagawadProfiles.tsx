@@ -16,6 +16,7 @@ interface KagawadProfile {
   facebook_url: string | null;
   age: number | null;
   term_start_date: string | null;
+  role: string;
   barangays?: {
     name: string;
   };
@@ -44,9 +45,10 @@ export const KagawadProfiles = ({ barangayId }: { barangayId?: string }) => {
           facebook_url,
           age,
           term_start_date,
+          role,
           barangays (name)
         `)
-        .eq('role', 'kagawad')
+        .in('role', ['kagawad', 'sk_chairman'])
         .eq('is_active', true)
         .order('full_name');
 
@@ -98,7 +100,7 @@ export const KagawadProfiles = ({ barangayId }: { barangayId?: string }) => {
               <div className="space-y-1">
                 <h3 className="font-semibold text-lg">{kagawad.full_name}</h3>
                 <Badge variant="secondary" className="text-xs">
-                  SK Kagawad
+                  {kagawad.role === 'sk_chairman' ? 'SK Chairman' : 'SK Kagawad'}
                 </Badge>
                 {kagawad.barangays && (
                   <p className="text-sm text-muted-foreground">
