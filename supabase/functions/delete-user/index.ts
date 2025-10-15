@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, Authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
@@ -28,24 +28,31 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    // Get the user making the request
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseClient.auth.getUser();
-
-    if (userError || !user) {
+    // Extract user ID from JWT (Edge Functions verify JWT by default)
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+    const token = authHeader.replace('Bearer ', '').trim();
+    if (!token) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get the requester's profile
+    let requesterId: string | null = null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      requesterId = payload.sub as string;
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { data: requesterProfile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('role, barangay_id')
-      .eq('id', user.id)
+      .eq('id', requesterId!)
       .single();
 
     if (profileError || !requesterProfile) {
@@ -103,7 +110,7 @@ serve(async (req) => {
     }
 
     // Prevent deleting yourself
-    if (userId === user.id) {
+    if (userId === requesterId) {
       return new Response(
         JSON.stringify({ error: 'You cannot delete your own account' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -123,7 +130,7 @@ serve(async (req) => {
 
     // Log the audit trail
     await supabaseClient.from('audit_logs').insert({
-      user_id: user.id,
+      user_id: requesterId!,
       action: 'user_delete',
       table_name: 'profiles',
       record_id: userId,
