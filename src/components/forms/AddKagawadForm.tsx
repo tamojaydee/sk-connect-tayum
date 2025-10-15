@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const kagawadSchema = z.object({
   email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
   full_name: z.string().min(1, 'Full name is required').max(100, 'Name must be less than 100 characters'),
   contact_number: z.string().max(20, 'Contact number must be less than 20 characters').optional(),
   age: z.string().optional(),
@@ -44,6 +45,7 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
     resolver: zodResolver(kagawadSchema),
     defaultValues: {
       email: '',
+      password: '',
       full_name: '',
       contact_number: '',
       age: '',
@@ -120,14 +122,12 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
   const onSubmit = async (data: KagawadFormData) => {
     setIsSubmitting(true);
     try {
-      // Generate a temporary password
-      const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!';
-
-      // Create the auth user
+      // Create the auth user with provided password
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
-        password: tempPassword,
+        password: data.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: data.full_name,
             role: 'kagawad',
@@ -178,7 +178,7 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
 
       toast({
         title: 'Success',
-        description: `Kagawad ${data.full_name} has been added successfully. Temporary password: ${tempPassword}`,
+        description: `Kagawad ${data.full_name} has been added successfully.`,
       });
 
       form.reset();
@@ -282,6 +282,20 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
                   <FormLabel>Email *</FormLabel>
                   <FormControl>
                     <Input {...field} type="email" placeholder="juan@example.com" disabled={isSubmitting} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password *</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="password" placeholder="Enter password" disabled={isSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
