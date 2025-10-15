@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DollarSign, TrendingUp, TrendingDown, Plus, Minus, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { z } from 'zod';
+import { logAudit } from '@/lib/auditLog';
 
 const transactionSchema = z.object({
   amount: z.number().positive('Amount must be positive').max(999999999.99, 'Amount too large'),
@@ -164,7 +165,7 @@ export const AllBarangaysBudgetManagement = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      const { data: newTransaction, error } = await supabase
         .from('budget_transactions')
         .insert({
           barangay_id: selectedBarangay.barangay_id,
@@ -172,9 +173,24 @@ export const AllBarangaysBudgetManagement = () => {
           transaction_type: dialogType,
           description: validation.data.description || null,
           created_by: user.user.id,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Log the audit
+      await logAudit({
+        action: `budget_${dialogType}`,
+        tableName: 'budget_transactions',
+        recordId: newTransaction.id,
+        barangayId: selectedBarangay.barangay_id,
+        details: {
+          barangay: selectedBarangay.barangay_name,
+          amount: validation.data.amount,
+          description: validation.data.description,
+        },
+      });
 
       toast({
         title: 'Success',

@@ -174,7 +174,6 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
         barangayId: data.barangay_id,
         details: {
           title: data.title,
-          event_date: data.event_date,
           budget: data.budget ? parseFloat(data.budget) : null,
         },
       });

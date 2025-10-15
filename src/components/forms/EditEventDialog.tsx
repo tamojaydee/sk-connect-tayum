@@ -213,7 +213,6 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         barangayId: data.barangay_id,
         details: {
           title: data.title,
-          event_date: data.event_date,
           budget: data.budget ? parseFloat(data.budget) : null,
         },
       });
