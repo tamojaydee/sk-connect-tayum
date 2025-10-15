@@ -131,6 +131,7 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
           data: {
             full_name: data.full_name,
             role: 'kagawad',
+            barangay_id: barangayId,
           },
         },
       });
