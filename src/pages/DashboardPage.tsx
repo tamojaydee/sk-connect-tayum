@@ -355,6 +355,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
         barangays (name),
         profiles (full_name)
       `)
+      .is('archived_at', null)
       .order('event_date', { ascending: false });
 
     if (error) {
@@ -372,6 +373,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
         barangays (name),
         profiles (full_name)
       `)
+      .is('archived_at', null)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -405,6 +407,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
         barangays (name),
         profiles!projects_created_by_fkey (full_name)
       `)
+      .is('archived_at', null)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -444,7 +447,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
       const event = events.find((e) => e.id === eventId);
       const { error } = await supabase
         .from('events')
-        .update({ status: 'archived', archived_at: new Date().toISOString() })
+        .update({ archived_at: new Date().toISOString() })
         .eq('id', eventId);
 
       if (error) {
@@ -517,14 +520,32 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
     const canEditDocuments = (document: Document) => document.created_by === profile.id || profile.role === 'main_admin';
 
     const handleDeleteDocument = async (documentId: string) => {
+      const document = documents.find((d) => d.id === documentId);
       const { error } = await supabase
         .from('documents')
-        .delete()
+        .update({ archived_at: new Date().toISOString() })
         .eq('id', documentId);
 
       if (error) {
-        console.error('Error deleting document:', error);
+        console.error('Error archiving document:', error);
+        toast({
+          title: "Error",
+          description: "Failed to archive document",
+          variant: "destructive",
+        });
       } else {
+        // Log the audit
+        await logAudit({
+          action: 'document_archive',
+          tableName: 'documents',
+          recordId: documentId,
+          details: document ? { title: document.title } : undefined,
+        });
+
+        toast({
+          title: "Archived",
+          description: "Document moved to Archive",
+        });
         fetchDocuments();
       }
     };

@@ -120,25 +120,25 @@ export const EditProjectDialog = ({ open, onOpenChange, project, onSuccess }: Ed
   const handleDelete = async () => {
     if (!project) return;
 
-    if (!confirm("Are you sure you want to delete this project?")) return;
+    if (!confirm("Are you sure you want to archive this project?")) return;
 
     setLoading(true);
 
     const { error } = await supabase
       .from("projects")
-      .delete()
+      .update({ archived_at: new Date().toISOString() })
       .eq("id", project.id);
 
     if (error) {
       toast({
-        title: "Error deleting project",
+        title: "Error archiving project",
         description: error.message,
         variant: "destructive",
       });
     } else {
       // Log the audit
       await logAudit({
-        action: "project_delete",
+        action: "project_archive",
         tableName: "projects",
         recordId: project.id,
         barangayId: project.barangay_id,
@@ -148,8 +148,8 @@ export const EditProjectDialog = ({ open, onOpenChange, project, onSuccess }: Ed
       });
 
       toast({
-        title: "Success",
-        description: "Project deleted successfully",
+        title: "Archived",
+        description: "Project moved to Archive",
       });
       onSuccess();
       onOpenChange(false);
@@ -230,7 +230,7 @@ export const EditProjectDialog = ({ open, onOpenChange, project, onSuccess }: Ed
               onClick={handleDelete}
               disabled={loading}
             >
-              Delete
+              Archive Project
             </Button>
           </div>
         </form>
