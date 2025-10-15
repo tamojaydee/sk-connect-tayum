@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AmountInput } from '@/components/forms/AmountInput';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -222,21 +223,10 @@ export const BudgetManagement = ({ barangayId, barangayName }: { barangayId: str
           <div className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label htmlFor="amount">Amount (₱) *</Label>
-              <Input
+              <AmountInput
                 id="amount"
-                type="text"
-                inputMode="decimal"
-                autoComplete="off"
-                placeholder="0.00"
                 value={amount}
-                onChange={(e) => {
-                  let v = e.target.value.replace(/,/g, '.');
-                  v = v.replace(/[^0-9.]/g, '');
-                  const parts = v.split('.');
-                  if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
-                  if (parts[1]?.length > 2) v = parts[0] + '.' + parts[1].slice(0, 2);
-                  setAmount(v);
-                }}
+                onChange={setAmount}
                 disabled={isSubmitting}
               />
               {errors.amount && <p className="text-sm text-destructive">{errors.amount}</p>}
