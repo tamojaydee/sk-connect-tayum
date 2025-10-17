@@ -16,7 +16,23 @@ const ProfilesPage = () => {
           </p>
         </div>
 
-        <KagawadProfiles />
+        <div className="space-y-12">
+          {/* SK Chairmen Section */}
+          <div>
+            <h2 className="text-2xl font-heading font-semibold text-foreground mb-6">
+              SK Chairmen
+            </h2>
+            <KagawadProfiles role="sk_chairman" />
+          </div>
+
+          {/* SK Kagawads Section */}
+          <div>
+            <h2 className="text-2xl font-heading font-semibold text-foreground mb-6">
+              SK Kagawads
+            </h2>
+            <KagawadProfiles role="kagawad" />
+          </div>
+        </div>
       </main>
     </div>
   );

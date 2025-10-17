@@ -22,13 +22,13 @@ interface KagawadProfile {
   };
 }
 
-export const KagawadProfiles = ({ barangayId }: { barangayId?: string }) => {
+export const KagawadProfiles = ({ barangayId, role }: { barangayId?: string; role?: 'kagawad' | 'sk_chairman' }) => {
   const [kagawads, setKagawads] = useState<KagawadProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchKagawads();
-  }, [barangayId]);
+  }, [barangayId, role]);
 
   const fetchKagawads = async () => {
     setIsLoading(true);
@@ -48,7 +48,7 @@ export const KagawadProfiles = ({ barangayId }: { barangayId?: string }) => {
           role,
           barangays (name)
         `)
-        .in('role', ['kagawad', 'sk_chairman'])
+        .in('role', role ? [role] : ['kagawad', 'sk_chairman'])
         .eq('is_active', true)
         .order('full_name');
 
