@@ -292,37 +292,35 @@ export const BudgetAdvisor = () => {
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0 overflow-hidden min-h-0">
-        <ScrollArea className="flex-1 h-[400px]">
-          <div className="p-4">
-            {messages.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="font-medium mb-2">Welcome to Budget Advisor!</p>
-                <p className="text-sm">Ask me about youth programs, budget priorities, or what your kabataan needs.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {messages.map((msg, idx) => (
+        <div className="flex-1 overflow-y-auto p-4">
+          {messages.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="font-medium mb-2">Welcome to Budget Advisor!</p>
+              <p className="text-sm">Ask me about youth programs, budget priorities, or what your kabataan needs.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
                   <div
-                    key={idx}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`max-w-[80%] rounded-lg p-3 ${
+                      msg.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    }`}
                   >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        msg.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                    </div>
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                   </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
         <form onSubmit={handleSubmit} className="p-4 border-t">
           <div className="flex gap-2">
             <Textarea
