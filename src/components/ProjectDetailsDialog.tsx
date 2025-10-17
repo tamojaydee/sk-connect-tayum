@@ -46,6 +46,7 @@ interface ProjectDetailsDialogProps {
     budget: number | null;
     created_at: string;
     created_by: string;
+    barangay_id: string;
     barangays?: {
       name: string;
     };
@@ -271,24 +272,25 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteract
     try {
       const { error } = await supabase
         .from("projects")
-        .delete()
+        .update({ archived_at: new Date().toISOString() })
         .eq("id", project.id);
 
       if (error) throw error;
 
       // Log the audit
       await logAudit({
-        action: "project_permanent_delete",
+        action: "project_archive",
         tableName: "projects",
         recordId: project.id,
+        barangayId: project.barangay_id,
         details: {
           title: project.title,
         },
       });
 
       toast({
-        title: "Success",
-        description: "Project deleted successfully",
+        title: "Archived",
+        description: "Project moved to Archive",
       });
 
       onOpenChange(false);
@@ -296,7 +298,7 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteract
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete project",
+        description: error.message || "Failed to archive project",
         variant: "destructive",
       });
     } finally {
@@ -330,7 +332,7 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteract
                   variant="destructive"
                   size="icon"
                   onClick={() => setShowDeleteDialog(true)}
-                  title="Delete project"
+                  title="Archive project"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -475,9 +477,9 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteract
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogTitle>Archive Project</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to permanently delete this project? This action cannot be undone and will delete all associated photos and comments.
+              This will move the project to the Archive. You can restore it later from the Dashboard Archive tab.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -487,7 +489,7 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteract
               disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Archive"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
