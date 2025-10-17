@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MapboxLocationPicker } from "./MapboxLocationPicker";
 
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -36,6 +37,7 @@ interface AddProjectFormProps {
 
 export const AddProjectForm = ({ barangays, userBarangayId, isMainAdmin, onSuccess }: AddProjectFormProps) => {
   const [loading, setLoading] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<{ address: string; lat: number; lng: number } | null>(null);
   const { toast } = useToast();
 
   const {
@@ -74,6 +76,9 @@ export const AddProjectForm = ({ barangays, userBarangayId, isMainAdmin, onSucce
       created_by: user.id,
       status: "active",
       progress: 0,
+      location_address: selectedLocation?.address || null,
+      location_lat: selectedLocation?.lat || null,
+      location_lng: selectedLocation?.lng || null,
     }).select().single();
 
     if (error) {
@@ -138,6 +143,14 @@ export const AddProjectForm = ({ barangays, userBarangayId, isMainAdmin, onSucce
           {...register("budget")}
           placeholder="0.00"
           step="0.01"
+        />
+      </div>
+
+      <div>
+        <Label>Project Location</Label>
+        <MapboxLocationPicker
+          onLocationSelect={setSelectedLocation}
+          selectedLocation={selectedLocation}
         />
       </div>
 

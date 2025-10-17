@@ -529,6 +529,9 @@ export type Database = {
           created_by: string
           description: string | null
           id: string
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
           progress: number
           status: string
           title: string
@@ -542,6 +545,9 @@ export type Database = {
           created_by: string
           description?: string | null
           id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           progress?: number
           status?: string
           title: string
@@ -555,6 +561,9 @@ export type Database = {
           created_by?: string
           description?: string | null
           id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           progress?: number
           status?: string
           title?: string

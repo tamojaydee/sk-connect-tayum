@@ -19,6 +19,9 @@ interface ProjectCardProps {
     profiles?: {
       full_name: string;
     };
+    project_photos?: Array<{
+      photo_url: string;
+    }>;
   };
   onClick: () => void;
 }
@@ -37,11 +40,22 @@ export const ProjectCard = ({ project, onClick }: ProjectCardProps) => {
     }
   };
 
+  const firstPhoto = project.project_photos?.[0]?.photo_url;
+
   return (
     <Card 
-      className="cursor-pointer hover:shadow-lg transition-shadow"
+      className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
       onClick={onClick}
     >
+      {firstPhoto && (
+        <div className="h-48 w-full overflow-hidden">
+          <img 
+            src={firstPhoto} 
+            alt={project.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-xl">{project.title}</CardTitle>
