@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Image as ImageIcon, Trash2, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { ImageZoomDialog } from "./ImageZoomDialog";
+import { logAudit } from "@/lib/auditLog";
 
 interface Comment {
   id: string;
@@ -43,6 +45,7 @@ interface ProjectDetailsDialogProps {
     progress: number;
     budget: number | null;
     created_at: string;
+    created_by: string;
     barangays?: {
       name: string;
     };
@@ -60,7 +63,26 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteract
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        setCurrentUser({ id: user.id, role: profile?.role });
+      }
+    };
+    
+    fetchCurrentUser();
+  }, []);
 
   useEffect(() => {
     if (project?.id) {
@@ -241,6 +263,53 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteract
     }
   };
 
+  const handleDeleteProject = async () => {
+    if (!project?.id) return;
+
+    setDeleting(true);
+
+    try {
+      const { error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", project.id);
+
+      if (error) throw error;
+
+      // Log the audit
+      await logAudit({
+        action: "project_permanent_delete",
+        tableName: "projects",
+        recordId: project.id,
+        details: {
+          title: project.title,
+        },
+      });
+
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      });
+
+      onOpenChange(false);
+      window.location.reload(); // Refresh to update the list
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete project",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
+  const canDeleteProject = currentUser && (
+    currentUser.role === 'main_admin' || 
+    currentUser.id === project?.created_by
+  );
+
   if (!project) return null;
 
   return (
@@ -249,12 +318,24 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteract
         <DialogHeader>
           <div className="flex justify-between items-start">
             <DialogTitle className="text-2xl">{project.title}</DialogTitle>
-            <Badge className={
-              project.status === "active" ? "bg-secondary" :
-              project.status === "completed" ? "bg-primary" : "bg-destructive"
-            }>
-              {project.status}
-            </Badge>
+            <div className="flex gap-2 items-center">
+              <Badge className={
+                project.status === "active" ? "bg-secondary" :
+                project.status === "completed" ? "bg-primary" : "bg-destructive"
+              }>
+                {project.status}
+              </Badge>
+              {canDeleteProject && (
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => setShowDeleteDialog(true)}
+                  title="Delete project"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
@@ -390,6 +471,27 @@ export const ProjectDetailsDialog = ({ open, onOpenChange, project, showInteract
         onOpenChange={(open) => !open && setZoomedImage(null)}
         imageUrl={zoomedImage || ""}
       />
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete this project? This action cannot be undone and will delete all associated photos and comments.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProject}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };
