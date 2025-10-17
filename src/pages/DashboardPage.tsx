@@ -407,7 +407,8 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
       .select(`
         *,
         barangays (name),
-        profiles!projects_created_by_fkey (full_name)
+        profiles!projects_created_by_fkey (full_name),
+        project_photos(photo_url)
       `)
       .is('archived_at', null)
       .order('created_at', { ascending: false });
@@ -864,11 +865,13 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
 
   const renderProjects = () => {
     const canCreateProjects = profile.role === 'main_admin' || profile.role === 'sk_chairman';
+    const activeProjects = projects.filter(p => p.status === 'active');
+    const completedProjects = projects.filter(p => p.status === 'completed');
 
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Projects</h2>
+          <h2 className="text-2xl font-bold">Current Projects</h2>
           {canCreateProjects && (
             <Button onClick={() => setShowAddProject(true)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -897,7 +900,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
+          {activeProjects.map((project) => (
             <div key={project.id}>
               <ProjectCard
                 project={project}
@@ -921,11 +924,11 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
           ))}
         </div>
 
-        {projects.length === 0 && (
+        {activeProjects.length === 0 && (
           <Card>
             <CardContent className="text-center py-8">
               <FolderKanban className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No Projects Yet</h3>
+              <h3 className="text-lg font-semibold mb-2">No Active Projects Yet</h3>
               <p className="text-muted-foreground mb-4">
                 Start by creating your first project
               </p>
@@ -937,6 +940,39 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
               )}
             </CardContent>
           </Card>
+        )}
+
+        {/* Completed Projects Section */}
+        {completedProjects.length > 0 && (
+          <>
+            <div className="mt-16">
+              <h2 className="text-2xl font-bold mb-4">Completed Projects</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {completedProjects.map((project) => (
+                <div key={project.id}>
+                  <ProjectCard
+                    project={project}
+                    onClick={() => {
+                      setSelectedProject(project);
+                      setShowProjectDetails(true);
+                    }}
+                  />
+                  {(project.created_by === profile.id || profile.role === 'main_admin') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-2"
+                      onClick={() => setEditingProject(project)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         <ProjectDetailsDialog
