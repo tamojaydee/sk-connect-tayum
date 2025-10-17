@@ -43,9 +43,10 @@ interface Survey {
 
 interface SurveyAnalyticsProps {
   barangayId?: string;
+  monthFilter?: string; // Format: 'YYYY-MM'
 }
 
-export const SurveyAnalytics = ({ barangayId }: SurveyAnalyticsProps) => {
+export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProps) => {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [filteredSurveys, setFilteredSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +59,7 @@ export const SurveyAnalytics = ({ barangayId }: SurveyAnalyticsProps) => {
 
   useEffect(() => {
     fetchSurveys();
-  }, [barangayId]);
+  }, [barangayId, monthFilter]);
 
   useEffect(() => {
     if (searchQuery.trim() === "") {
@@ -81,6 +82,17 @@ export const SurveyAnalytics = ({ barangayId }: SurveyAnalyticsProps) => {
       
       if (barangayId) {
         query = query.eq("barangay_id", barangayId);
+      }
+
+      // Filter by month if provided
+      if (monthFilter) {
+        const startDate = new Date(monthFilter + '-01');
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + 1);
+        
+        query = query
+          .gte('created_at', startDate.toISOString())
+          .lt('created_at', endDate.toISOString());
       }
       
       const { data, error } = await query.order("created_at", { ascending: false });

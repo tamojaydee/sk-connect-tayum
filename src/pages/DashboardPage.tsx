@@ -16,6 +16,7 @@ import { EventCard } from '@/components/EventCard';
 import { DocumentCard } from '@/components/DocumentCard';
 import { SurveyAnalytics } from '@/components/SurveyAnalytics';
 import { MonthlySurveyInsights } from '@/components/MonthlySurveyInsights';
+import { SurveyMonthlyHistory } from '@/components/SurveyMonthlyHistory';
 import { BudgetManagement } from '@/components/BudgetManagement';
 import { AllBarangaysBudgetManagement } from '@/components/AllBarangaysBudgetManagement';
 import { TransparencyTab } from '@/components/TransparencyTab';
@@ -787,12 +788,27 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
           >
             Survey Analytics
           </button>
+          <button
+            className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
+              surveyTab === 'history'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => setSurveyTab('history')}
+          >
+            Monthly History
+          </button>
         </nav>
       </div>
 
       {surveyTab === 'insights' && <MonthlySurveyInsights />}
       {surveyTab === 'analytics' && (
         <SurveyAnalytics 
+          barangayId={profile.role === 'sk_chairman' ? profile.barangay_id : undefined} 
+        />
+      )}
+      {surveyTab === 'history' && (
+        <SurveyMonthlyHistory 
           barangayId={profile.role === 'sk_chairman' ? profile.barangay_id : undefined} 
         />
       )}
