@@ -327,10 +327,7 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
         </div>
       )}
 
-      {/* Budget Line Chart - FIRST */}
-      <BudgetLineChart />
-
-      {/* Budget Utilization Chart - SECOND */}
+      {/* Budget Utilization Chart - FIRST */}
       {config.show_budget_utilization && (
         <Card>
           <CardHeader className="border-b">

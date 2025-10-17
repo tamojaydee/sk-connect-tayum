@@ -23,28 +23,6 @@ const Index = () => {
       <AnnouncementSection />
       <SlideshowSection />
       <FeatureGrid />
-      
-      {/* Public Documents Section */}
-      <section className="py-16 bg-muted/50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-heading font-bold text-foreground mb-4">
-              Public Documents
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Access official documents, ordinances, and reports for transparency
-            </p>
-          </div>
-          <DocumentsSection limit={6} showFilters={false} />
-          <div className="text-center mt-8">
-            <Link to="/documents">
-              <Button size="lg" variant="outline">
-                View All Documents
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* Statistics Section */}
       <section className="py-16 bg-gradient-to-br from-background to-muted/30">
