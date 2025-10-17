@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, DollarSign, FileText, ClipboardList, Settings, Calendar, TrendingUp } from 'lucide-react';
+import { Users, DollarSign, FileText, ClipboardList, Settings, Calendar, TrendingUp, RotateCcw } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,18 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { BudgetLineChart } from '@/components/BudgetLineChart';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface BudgetData {
   id: string;
@@ -230,8 +242,72 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
 
   const COLORS = ['#7c3aed', '#e299cc', '#a78bfa', '#f0abfc', '#c084fc'];
 
+  const handleResetBudget = async (barangayId: string, barangayName: string) => {
+    try {
+      const { error } = await supabase
+        .from('barangay_budgets')
+        .update({
+          total_budget: 0,
+          available_budget: 0,
+        })
+        .eq('barangay_id', barangayId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Budget Reset',
+        description: `Successfully reset budget for ${barangayName}`,
+      });
+
+      fetchBudgets();
+    } catch (error) {
+      console.error('Error resetting budget:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reset budget',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleResetAllBudgets = async () => {
+    try {
+      const { error } = await supabase
+        .from('barangay_budgets')
+        .update({
+          total_budget: 0,
+          available_budget: 0,
+        })
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Update all
+
+      if (error) throw error;
+
+      toast({
+        title: 'All Budgets Reset',
+        description: 'Successfully reset all barangay budgets',
+      });
+
+      fetchBudgets();
+    } catch (error) {
+      console.error('Error resetting all budgets:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reset all budgets',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
-    <div className="space-y-8">
+    <Tabs defaultValue="transparency" className="space-y-8">
+      <TabsList>
+        <TabsTrigger value="transparency">Transparency Dashboard</TabsTrigger>
+        {isMainAdmin && (
+          <TabsTrigger value="budget-reset">Budget Reset</TabsTrigger>
+        )}
+      </TabsList>
+
+      <TabsContent value="transparency" className="space-y-8">
       {isMainAdmin && (
         <div className="flex justify-end">
           <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
@@ -510,6 +586,91 @@ export const TransparencyTab = ({ isMainAdmin }: TransparencyTabProps) => {
           </CardContent>
         </Card>
       )}
-    </div>
+      </TabsContent>
+
+      {isMainAdmin && (
+        <TabsContent value="budget-reset" className="space-y-6">
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="flex items-center gap-2">
+                <RotateCcw className="h-5 w-5 text-primary" />
+                Budget Reset Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <h3 className="font-semibold">Reset All Barangay Budgets</h3>
+                    <p className="text-sm text-muted-foreground">This will reset total and utilized budgets for all barangays to ₱0.00</p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive">
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Reset All
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action will reset all barangay budgets to ₱0.00. This cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleResetAllBudgets}>
+                          Reset All Budgets
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold">Reset Individual Barangay</h3>
+                  {budgets.map((budget) => (
+                    <div key={budget.id} className="flex justify-between items-center p-4 rounded-lg border">
+                      <div className="flex-1">
+                        <div className="font-medium">{budget.barangays?.name || 'Unknown'}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Total: ₱{budget.total_budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })} | 
+                          Available: ₱{budget.available_budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Reset
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Reset {budget.barangays?.name} Budget?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will reset the budget for {budget.barangays?.name} to ₱0.00. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleResetBudget(budget.barangay_id, budget.barangays?.name || 'Unknown')}
+                            >
+                              Reset Budget
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      )}
+    </Tabs>
   );
 };
