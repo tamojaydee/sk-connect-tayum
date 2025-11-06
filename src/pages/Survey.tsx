@@ -213,8 +213,13 @@ const Survey = () => {
                       <Label htmlFor="lastName">Last Name</Label>
                       <Input 
                         id="lastName" 
-                        {...register("lastName", { required: "Last name is required" })}
+                        {...register("lastName", { 
+                          required: "Last name is required",
+                          maxLength: { value: 20, message: "Maximum 20 characters" },
+                          pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
+                        })}
                         className="mt-1"
+                        maxLength={20}
                       />
                       {errors.lastName && <p className="text-destructive text-sm mt-1">{errors.lastName.message}</p>}
                     </div>
@@ -222,8 +227,13 @@ const Survey = () => {
                       <Label htmlFor="givenName">Given Name</Label>
                       <Input 
                         id="givenName" 
-                        {...register("givenName", { required: "Given name is required" })}
+                        {...register("givenName", { 
+                          required: "Given name is required",
+                          maxLength: { value: 20, message: "Maximum 20 characters" },
+                          pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
+                        })}
                         className="mt-1"
+                        maxLength={20}
                       />
                       {errors.givenName && <p className="text-destructive text-sm mt-1">{errors.givenName.message}</p>}
                     </div>
@@ -231,17 +241,27 @@ const Survey = () => {
                       <Label htmlFor="middleName">Middle Name</Label>
                       <Input 
                         id="middleName" 
-                        {...register("middleName")}
+                        {...register("middleName", {
+                          maxLength: { value: 20, message: "Maximum 20 characters" },
+                          pattern: { value: /^[A-Za-z\s]*$/, message: "Only letters allowed" }
+                        })}
                         className="mt-1"
+                        maxLength={20}
                       />
+                      {errors.middleName && <p className="text-destructive text-sm mt-1">{errors.middleName.message}</p>}
                     </div>
                     <div>
                       <Label htmlFor="suffix">Suffix</Label>
                       <Input 
                         id="suffix" 
-                        {...register("suffix")}
+                        {...register("suffix", {
+                          maxLength: { value: 20, message: "Maximum 20 characters" },
+                          pattern: { value: /^[A-Za-z.\s]*$/, message: "Only letters allowed" }
+                        })}
                         className="mt-1"
+                        maxLength={20}
                       />
+                      {errors.suffix && <p className="text-destructive text-sm mt-1">{errors.suffix.message}</p>}
                     </div>
                   </div>
                 </div>
@@ -339,9 +359,17 @@ const Survey = () => {
                     <Label htmlFor="contactNumber">Contact Number</Label>
                     <Input 
                       id="contactNumber" 
-                      {...register("contactNumber", { required: "Contact number is required" })}
+                      {...register("contactNumber", { 
+                        required: "Contact number is required",
+                        pattern: { value: /^[0-9]{11}$/, message: "Must be exactly 11 digits" },
+                        minLength: { value: 11, message: "Must be exactly 11 digits" },
+                        maxLength: { value: 11, message: "Must be exactly 11 digits" }
+                      })}
                       className="mt-1"
+                      maxLength={11}
+                      inputMode="numeric"
                     />
+                    {errors.contactNumber && <p className="text-destructive text-sm mt-1">{errors.contactNumber.message}</p>}
                   </div>
                 </div>
 
@@ -372,110 +400,102 @@ const Survey = () => {
                 {/* Civil Status */}
                 <div>
                   <Label className="text-base font-medium mb-3 block">Civil Status:</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {["Single", "Married", "Widowed", "Divorced", "Separated", "Annulled", "Unknown", "Live In"].map((status) => (
-                      <div key={status} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`civil-${status}`} 
-                          onCheckedChange={(checked) => {
-                            if (checked) setValue("civilStatus", status);
-                          }}
-                        />
-                        <Label htmlFor={`civil-${status}`} className="text-sm">{status}</Label>
-                      </div>
-                    ))}
-                  </div>
+                  <RadioGroup onValueChange={(value) => setValue("civilStatus", value)}>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {["Single", "Married", "Widowed", "Divorced", "Separated", "Annulled", "Unknown", "Live In"].map((status) => (
+                        <div key={status} className="flex items-center space-x-2">
+                          <RadioGroupItem value={status} id={`civil-${status}`} />
+                          <Label htmlFor={`civil-${status}`} className="text-sm">{status}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
                 </div>
 
                 {/* Youth Classification */}
                 <div>
                   <Label className="text-base font-medium mb-3 block">Youth Classification:</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {["In School Youth", "Out School Youth", "Working Youth", "Youth w/ Specific needs"].map((classification) => (
-                      <div key={classification} className="flex items-center space-x-2">
-                        <Checkbox id={`youth-${classification}`} />
-                        <Label htmlFor={`youth-${classification}`} className="text-sm">{classification}</Label>
-                      </div>
-                    ))}
-                  </div>
+                  <RadioGroup onValueChange={(value) => setValue("youthClassification", [value])}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {["In School Youth", "Out School Youth", "Working Youth", "Youth w/ Specific needs"].map((classification) => (
+                        <div key={classification} className="flex items-center space-x-2">
+                          <RadioGroupItem value={classification} id={`youth-${classification}`} />
+                          <Label htmlFor={`youth-${classification}`} className="text-sm">{classification}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
                 </div>
 
                 {/* Youth Age Group */}
                 <div>
                   <Label className="text-base font-medium mb-3 block">Youth Age Group:</Label>
-                  <div className="space-y-2">
-                    {[
-                      "Child Youth (15-17 years old)",
-                      "Core Youth (18-24 years old)", 
-                      "Young Adult (25-30 years old)"
-                    ].map((ageGroup) => (
-                      <div key={ageGroup} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`age-${ageGroup}`}
-                          onCheckedChange={(checked) => {
-                            if (checked) setValue("youthAgeGroup", ageGroup);
-                          }}
-                        />
-                        <Label htmlFor={`age-${ageGroup}`} className="text-sm">{ageGroup}</Label>
-                      </div>
-                    ))}
-                  </div>
+                  <RadioGroup onValueChange={(value) => setValue("youthAgeGroup", value)}>
+                    <div className="space-y-2">
+                      {[
+                        "Child Youth (15-17 years old)",
+                        "Core Youth (18-24 years old)", 
+                        "Young Adult (25-30 years old)"
+                      ].map((ageGroup) => (
+                        <div key={ageGroup} className="flex items-center space-x-2">
+                          <RadioGroupItem value={ageGroup} id={`age-${ageGroup}`} />
+                          <Label htmlFor={`age-${ageGroup}`} className="text-sm">{ageGroup}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
                 </div>
 
                 {/* Educational Background */}
                 <div>
                   <Label className="text-base font-medium mb-3 block">Educational Background:</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      "Elementary Level", "Elementary Graduate", "High School Level", "High School Graduate",
-                      "Vocational Graduate", "College Level", "College Graduate", "Masters Level",
-                      "Masters Graduate", "Doctorate Level", "Doctorate Graduate"
-                    ].map((education) => (
-                      <div key={education} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`edu-${education}`}
-                          onCheckedChange={(checked) => {
-                            if (checked) setValue("educationalBackground", education);
-                          }}
-                        />
-                        <Label htmlFor={`edu-${education}`} className="text-sm">{education}</Label>
-                      </div>
-                    ))}
-                  </div>
+                  <RadioGroup onValueChange={(value) => setValue("educationalBackground", value)}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        "Elementary Level", "Elementary Graduate", "High School Level", "High School Graduate",
+                        "Vocational Graduate", "College Level", "College Graduate", "Masters Level",
+                        "Masters Graduate", "Doctorate Level", "Doctorate Graduate"
+                      ].map((education) => (
+                        <div key={education} className="flex items-center space-x-2">
+                          <RadioGroupItem value={education} id={`edu-${education}`} />
+                          <Label htmlFor={`edu-${education}`} className="text-sm">{education}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
                 </div>
 
                 {/* Work Status */}
                 <div>
                   <Label className="text-base font-medium mb-3 block">Work Status:</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      "Employed", "Unemployed", "Self Employed", 
-                      "Currently looking for a Job", "Not Interested Looking for a Job"
-                    ].map((status) => (
-                      <div key={status} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`work-${status}`}
-                          onCheckedChange={(checked) => {
-                            if (checked) setValue("workStatus", status);
-                          }}
-                        />
-                        <Label htmlFor={`work-${status}`} className="text-sm">{status}</Label>
-                      </div>
-                    ))}
-                  </div>
+                  <RadioGroup onValueChange={(value) => setValue("workStatus", value)}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        "Employed", "Unemployed", "Self Employed", 
+                        "Currently looking for a Job", "Not Interested Looking for a Job"
+                      ].map((status) => (
+                        <div key={status} className="flex items-center space-x-2">
+                          <RadioGroupItem value={status} id={`work-${status}`} />
+                          <Label htmlFor={`work-${status}`} className="text-sm">{status}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
                 </div>
 
                 {/* Special Categories */}
                 <div>
                   <Label className="text-base font-medium mb-3 block">Special Categories:</Label>
-                  <div className="space-y-2">
-                    {["Person with Disability", "Children in Conflict with Law", "Indigenous People"].map((category) => (
-                      <div key={category} className="flex items-center space-x-2">
-                        <Checkbox id={`special-${category}`} />
-                        <Label htmlFor={`special-${category}`} className="text-sm">{category}</Label>
-                      </div>
-                    ))}
-                  </div>
+                  <RadioGroup onValueChange={(value) => setValue("specialCategories", [value])}>
+                    <div className="space-y-2">
+                      {["Person with Disability", "Children in Conflict with Law", "Indigenous People", "None"].map((category) => (
+                        <div key={category} className="flex items-center space-x-2">
+                          <RadioGroupItem value={category} id={`special-${category}`} />
+                          <Label htmlFor={`special-${category}`} className="text-sm">{category}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
                 </div>
               </CardContent>
             </Card>
@@ -573,16 +593,18 @@ const Survey = () => {
                 {/* Reason for not attending */}
                 <div>
                   <Label className="text-base font-medium mb-3 block">If No, Why?</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="reason-no-meeting" />
-                      <Label htmlFor="reason-no-meeting" className="text-sm">There was no SK Assembly Meeting</Label>
+                  <RadioGroup onValueChange={(value) => setValue("noSKAssemblyReason", value)}>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="There was no SK Assembly Meeting" id="reason-no-meeting" />
+                        <Label htmlFor="reason-no-meeting" className="text-sm">There was no SK Assembly Meeting</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Not Interested to Attend" id="reason-not-interested" />
+                        <Label htmlFor="reason-not-interested" className="text-sm">Not Interested to Attend</Label>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="reason-not-interested" />
-                      <Label htmlFor="reason-not-interested" className="text-sm">Not Interested to Attend</Label>
-                    </div>
-                  </div>
+                  </RadioGroup>
                 </div>
               </CardContent>
             </Card>
