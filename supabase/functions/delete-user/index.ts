@@ -118,21 +118,33 @@ serve(async (req) => {
     }
 
     // First, clean up related records before deleting the user
-    // Delete or nullify records that reference this user
-    
-    // Delete audit logs for this user
-    await supabaseClient.from('audit_logs').delete().eq('user_id', userId);
-    
-    // Nullify created_by in events
-    await supabaseClient.from('events').update({ created_by: null }).eq('created_by', userId);
-    
-    // Nullify created_by in projects (if exists)
-    await supabaseClient.from('projects').update({ created_by: null }).eq('created_by', userId);
-    
-    // Delete the profile (this should cascade other dependencies)
-    await supabaseClient.from('profiles').delete().eq('id', userId);
+    // Use admin client to bypass RLS and satisfy FK constraints
+    const admin = supabaseAdmin;
+    const reassignTo = requesterId!;
 
-    // Log the audit trail before deletion
+    // Reassign ownership fields to the requester (avoids NOT NULL and FK issues)
+    const updates = [
+      admin.from('events').update({ created_by: reassignTo }).eq('created_by', userId),
+      admin.from('projects').update({ created_by: reassignTo }).eq('created_by', userId),
+      admin.from('documents').update({ created_by: reassignTo }).eq('created_by', userId),
+      admin.from('budget_transactions').update({ created_by: reassignTo }).eq('created_by', userId),
+      admin.from('survey_insights').update({ created_by: reassignTo }).eq('created_by', userId),
+      admin.from('slideshow_images').update({ created_by: reassignTo }).eq('created_by', userId),
+    ];
+    const results = await Promise.all(updates);
+    for (const r of results) {
+      if ((r as any).error) {
+        console.error('Cleanup update error:', (r as any).error);
+      }
+    }
+
+    // Delete the profile explicitly (if FK blocks cascade)
+    const { error: profileDelErr } = await admin.from('profiles').delete().eq('id', userId);
+    if (profileDelErr) {
+      console.warn('Profile delete warning (will continue):', profileDelErr.message);
+    }
+
+    // Log the audit trail before deletion (uses requester auth, passes RLS)
     await supabaseClient.from('audit_logs').insert({
       user_id: requesterId!,
       action: 'user_delete',
@@ -146,7 +158,7 @@ serve(async (req) => {
     });
 
     // Now delete the user from auth using admin client
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    const { error: deleteError } = await admin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
       console.error('Error deleting user:', deleteError);
