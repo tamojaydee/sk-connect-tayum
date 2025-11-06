@@ -748,12 +748,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_barangay_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_user_barangay_id: { Args: never; Returns: string }
       get_user_role: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
     }
