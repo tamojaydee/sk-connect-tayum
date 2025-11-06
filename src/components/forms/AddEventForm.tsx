@@ -229,30 +229,50 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="barangay_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Barangay</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+            {userProfile?.role === 'sk_chairman' ? (
+              <FormField
+                control={form.control}
+                name="barangay_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Barangay</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a barangay" />
-                      </SelectTrigger>
+                      <Input 
+                        value={barangays.find(b => b.id === field.value)?.name || 'Loading...'} 
+                        disabled 
+                        className="bg-muted"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {barangays.map((barangay) => (
-                        <SelectItem key={barangay.id} value={barangay.id}>
-                          {barangay.name} ({barangay.code})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="barangay_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Barangay</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a barangay" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {barangays.map((barangay) => (
+                          <SelectItem key={barangay.id} value={barangay.id}>
+                            {barangay.name} ({barangay.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             
             <FormField
               control={form.control}
