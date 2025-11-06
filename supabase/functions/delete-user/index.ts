@@ -117,18 +117,22 @@ serve(async (req) => {
       );
     }
 
-    // Delete the user using admin client
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    // First, clean up related records before deleting the user
+    // Delete or nullify records that reference this user
+    
+    // Delete audit logs for this user
+    await supabaseClient.from('audit_logs').delete().eq('user_id', userId);
+    
+    // Nullify created_by in events
+    await supabaseClient.from('events').update({ created_by: null }).eq('created_by', userId);
+    
+    // Nullify created_by in projects (if exists)
+    await supabaseClient.from('projects').update({ created_by: null }).eq('created_by', userId);
+    
+    // Delete the profile (this should cascade other dependencies)
+    await supabaseClient.from('profiles').delete().eq('id', userId);
 
-    if (deleteError) {
-      console.error('Error deleting user:', deleteError);
-      return new Response(
-        JSON.stringify({ error: deleteError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Log the audit trail
+    // Log the audit trail before deletion
     await supabaseClient.from('audit_logs').insert({
       user_id: requesterId!,
       action: 'user_delete',
@@ -140,6 +144,17 @@ serve(async (req) => {
         deleted_by_role: requesterProfile.role
       },
     });
+
+    // Now delete the user from auth using admin client
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (deleteError) {
+      console.error('Error deleting user:', deleteError);
+      return new Response(
+        JSON.stringify({ error: deleteError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true }),
