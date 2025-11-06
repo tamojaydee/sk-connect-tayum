@@ -130,6 +130,7 @@ serve(async (req) => {
       admin.from('budget_transactions').update({ created_by: reassignTo }).eq('created_by', userId),
       admin.from('survey_insights').update({ created_by: reassignTo }).eq('created_by', userId),
       admin.from('slideshow_images').update({ created_by: reassignTo }).eq('created_by', userId),
+      admin.from('homepage_settings').update({ updated_by: reassignTo }).eq('updated_by', userId),
     ];
     const results = await Promise.all(updates);
     for (const r of results) {
