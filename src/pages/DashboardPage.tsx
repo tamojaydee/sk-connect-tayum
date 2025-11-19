@@ -63,7 +63,7 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  role: 'main_admin' | 'sk_chairman' | 'kagawad';
+  role: 'main_admin' | 'sk_chairman' | 'sk_secretary' | 'kagawad';
   barangay_id?: string;
   is_active: boolean;
   created_at: string;

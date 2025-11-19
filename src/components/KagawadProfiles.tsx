@@ -22,7 +22,7 @@ interface KagawadProfile {
   };
 }
 
-export const KagawadProfiles = ({ barangayId, role }: { barangayId?: string; role?: 'kagawad' | 'sk_chairman' }) => {
+export const KagawadProfiles = ({ barangayId, role }: { barangayId?: string; role?: 'kagawad' | 'sk_chairman' | 'sk_secretary' }) => {
   const [kagawads, setKagawads] = useState<KagawadProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,7 +48,7 @@ export const KagawadProfiles = ({ barangayId, role }: { barangayId?: string; rol
           role,
           barangays (name)
         `)
-        .in('role', role ? [role] : ['kagawad', 'sk_chairman'])
+        .in('role', role ? [role] : ['kagawad', 'sk_chairman', 'sk_secretary'])
         .eq('is_active', true)
         .order('full_name');
 
@@ -100,7 +100,7 @@ export const KagawadProfiles = ({ barangayId, role }: { barangayId?: string; rol
               <div className="space-y-1">
                 <h3 className="font-semibold text-lg">{kagawad.full_name}</h3>
                 <Badge variant="secondary" className="text-xs">
-                  {kagawad.role === 'sk_chairman' ? 'SK Chairman' : 'SK Kagawad'}
+                  {kagawad.role === 'sk_chairman' ? 'SK Chairman' : kagawad.role === 'sk_secretary' ? 'SK Secretary' : 'SK Kagawad'}
                 </Badge>
                 {kagawad.barangays && (
                   <p className="text-sm text-muted-foreground">
