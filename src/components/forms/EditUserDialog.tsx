@@ -14,7 +14,7 @@ import { logAudit } from '@/lib/auditLog';
 const editUserSchema = z.object({
   full_name: z.string().trim().min(1, 'Full name is required').max(100, 'Name must be less than 100 characters'),
   email: z.string().email('Invalid email address').max(255, 'Email must be less than 255 characters'),
-  role: z.enum(['main_admin', 'sk_chairman', 'kagawad']),
+  role: z.enum(['main_admin', 'sk_chairman', 'sk_secretary', 'kagawad']),
   barangay_id: z.string().uuid('Please select a barangay').optional().nullable(),
   is_active: z.boolean(),
   age: z.number().int().min(15, 'Age must be at least 15').max(30, 'Age must be at most 30').optional(),
@@ -35,7 +35,7 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  role: 'main_admin' | 'sk_chairman' | 'kagawad';
+  role: 'main_admin' | 'sk_chairman' | 'sk_secretary' | 'kagawad';
   barangay_id?: string;
   is_active: boolean;
   age?: number | null;
@@ -50,7 +50,7 @@ interface EditUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
-  currentUserRole: 'main_admin' | 'sk_chairman' | 'kagawad';
+  currentUserRole: 'main_admin' | 'sk_chairman' | 'sk_secretary' | 'kagawad';
 }
 
 export const EditUserDialog = ({ user, open, onOpenChange, onSuccess, currentUserRole }: EditUserDialogProps) => {
@@ -275,6 +275,7 @@ export const EditUserDialog = ({ user, open, onOpenChange, onSuccess, currentUse
                   <SelectContent>
                     <SelectItem value="main_admin">Main Admin</SelectItem>
                     <SelectItem value="sk_chairman">SK Chairman</SelectItem>
+                    <SelectItem value="sk_secretary">SK Secretary</SelectItem>
                     <SelectItem value="kagawad">Kagawad</SelectItem>
                   </SelectContent>
                 </Select>

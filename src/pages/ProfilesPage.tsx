@@ -25,6 +25,14 @@ const ProfilesPage = () => {
             <KagawadProfiles role="sk_chairman" />
           </div>
 
+          {/* SK Secretaries Section */}
+          <div>
+            <h2 className="text-2xl font-heading font-semibold text-foreground mb-6">
+              SK Secretaries
+            </h2>
+            <KagawadProfiles role="sk_secretary" />
+          </div>
+
           {/* SK Kagawads Section */}
           <div>
             <h2 className="text-2xl font-heading font-semibold text-foreground mb-6">
