@@ -90,13 +90,13 @@ serve(async (req) => {
     let canDelete = false;
 
     if (requesterProfile.role === 'main_admin') {
-      // Main admin can delete SK chairmen and kagawads
-      if (targetProfile.role === 'sk_chairman' || targetProfile.role === 'kagawad') {
+      // Main admin can delete SK chairmen, secretaries, and kagawads
+      if (targetProfile.role === 'sk_chairman' || targetProfile.role === 'kagawad' || targetProfile.role === 'sk_secretary') {
         canDelete = true;
       }
     } else if (requesterProfile.role === 'sk_chairman') {
-      // SK chairman can delete kagawads in their barangay
-      if (targetProfile.role === 'kagawad' && 
+      // SK chairman can delete kagawads and secretaries in their barangay
+      if ((targetProfile.role === 'kagawad' || targetProfile.role === 'sk_secretary') && 
           targetProfile.barangay_id === requesterProfile.barangay_id) {
         canDelete = true;
       }

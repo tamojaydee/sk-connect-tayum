@@ -735,8 +735,8 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {((profile.role === 'main_admin' && (user.role === 'sk_chairman' || user.role === 'kagawad')) ||
-                        (profile.role === 'sk_chairman' && user.role === 'kagawad' && user.barangay_id === profile.barangay_id)) && 
+                      {((profile.role === 'main_admin' && (user.role === 'sk_chairman' || user.role === 'kagawad' || user.role === 'sk_secretary')) ||
+                        (profile.role === 'sk_chairman' && (user.role === 'kagawad' || user.role === 'sk_secretary') && user.barangay_id === profile.barangay_id)) && 
                         user.id !== profile.id && (
                         <Button 
                           variant="outline" 
