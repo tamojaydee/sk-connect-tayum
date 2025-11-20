@@ -76,9 +76,15 @@ export const KagawadProfiles = ({ barangayId, role }: { barangayId?: string; rol
   }
 
   if (kagawads.length === 0) {
+    const emptyMessage = role === 'sk_chairman' 
+      ? 'No chairperson found' 
+      : role === 'sk_secretary' 
+      ? 'No secretary found' 
+      : 'No kagawads found';
+    
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No kagawads found</p>
+        <p className="text-muted-foreground">{emptyMessage}</p>
       </div>
     );
   }
