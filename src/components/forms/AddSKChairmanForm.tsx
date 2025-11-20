@@ -151,7 +151,6 @@ export const AddSKChairmanForm = ({ onSuccess }: { onSuccess: () => void }) => {
         avatarUrl = publicUrl;
       }
       // Create auth user via edge function (won't auto-login)
-      const { data: { session } } = await supabase.auth.getSession();
       const { data: createUserResponse, error: authError } = await supabase.functions.invoke('create-user', {
         body: {
           email: validation.data.email,
@@ -159,9 +158,6 @@ export const AddSKChairmanForm = ({ onSuccess }: { onSuccess: () => void }) => {
           metadata: {
             full_name: validation.data.full_name,
           },
-        },
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
         },
       });
 

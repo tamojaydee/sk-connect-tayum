@@ -123,7 +123,6 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
     setIsSubmitting(true);
     try {
       // Create the auth user via edge function (won't auto-login)
-      const { data: { session } } = await supabase.auth.getSession();
       const { data: createUserResponse, error: authError } = await supabase.functions.invoke('create-user', {
         body: {
           email: data.email,
@@ -133,9 +132,6 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
             role: 'kagawad',
             barangay_id: barangayId,
           },
-        },
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
         },
       });
 
