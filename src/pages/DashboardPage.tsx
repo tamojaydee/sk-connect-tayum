@@ -10,6 +10,7 @@ import { AddEventForm } from '@/components/forms/AddEventForm';
 import { AddDocumentForm } from '@/components/forms/AddDocumentForm';
 import { AddSKChairmanForm } from '@/components/forms/AddSKChairmanForm';
 import { AddKagawadForm } from '@/components/forms/AddKagawadForm';
+import { AddSecretaryForm } from '@/components/forms/AddSecretaryForm';
 import { EditUserDialog } from '@/components/forms/EditUserDialog';
 import { EditEventDialog } from '@/components/forms/EditEventDialog';
 import { EventCard } from '@/components/EventCard';
@@ -638,7 +639,7 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
 
   const renderUsers = () => {
     const filteredUsers = profile.role === 'sk_chairman' 
-      ? users.filter(user => user.role === 'kagawad' && user.barangay_id === profile.barangay_id)
+      ? users.filter(user => (user.role === 'kagawad' || user.role === 'sk_secretary') && user.barangay_id === profile.barangay_id)
       : users;
 
     return (
@@ -651,11 +652,18 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
             <AddSKChairmanForm onSuccess={fetchUsers} />
           )}
           {profile.role === 'sk_chairman' && profile.barangay_id && profile.barangays && (
-            <AddKagawadForm 
-              barangayId={profile.barangay_id}
-              barangayName={profile.barangays.name}
-              onSuccess={fetchUsers}
-            />
+            <div className="flex gap-2">
+              <AddSecretaryForm 
+                barangayId={profile.barangay_id}
+                barangayName={profile.barangays.name}
+                onSuccess={fetchUsers}
+              />
+              <AddKagawadForm 
+                barangayId={profile.barangay_id}
+                barangayName={profile.barangays.name}
+                onSuccess={fetchUsers}
+              />
+            </div>
           )}
         </div>
         
@@ -687,11 +695,18 @@ const DashboardContent = ({ activeTab, profile, setActiveTab, onProfileUpdate }:
                   <AddSKChairmanForm onSuccess={fetchUsers} />
                 )}
                 {profile.role === 'sk_chairman' && profile.barangay_id && profile.barangays && (
-                  <AddKagawadForm 
-                    barangayId={profile.barangay_id}
-                    barangayName={profile.barangays.name}
-                    onSuccess={fetchUsers}
-                  />
+                  <div className="flex gap-2">
+                    <AddSecretaryForm 
+                      barangayId={profile.barangay_id}
+                      barangayName={profile.barangays.name}
+                      onSuccess={fetchUsers}
+                    />
+                    <AddKagawadForm 
+                      barangayId={profile.barangay_id}
+                      barangayName={profile.barangays.name}
+                      onSuccess={fetchUsers}
+                    />
+                  </div>
                 )}
               </CardContent>
             </Card>
