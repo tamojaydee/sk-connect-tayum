@@ -12,6 +12,16 @@ serve(async (req) => {
   }
 
   try {
+    // Get the authorization header from the request
+    const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
+    if (!authHeader) {
+      console.error('No authorization header');
+      throw new Error('No authorization header');
+    }
+
+    // Create admin client for user creation
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -23,26 +33,15 @@ serve(async (req) => {
       }
     );
 
-    // Get the authorization header from the request
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
-
-    // Verify the user is authenticated
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
-    );
-
-    const { data: { user: requestUser }, error: userError } = await supabaseClient.auth.getUser();
+    // Verify the requesting user is authenticated using their token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: requestUser }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    
+    console.log('User verification result:', { hasUser: !!requestUser, error: userError?.message });
+    
     if (userError || !requestUser) {
-      throw new Error('Unauthorized');
+      console.error('User verification failed:', userError);
+      throw new Error('Unauthorized: Invalid token');
     }
 
     const { email, password, metadata } = await req.json();
