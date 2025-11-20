@@ -285,15 +285,15 @@ export const EditUserDialog = ({ user, open, onOpenChange, onSuccess, currentUse
               <div className="space-y-2">
                 <Label htmlFor="barangay">Barangay</Label>
                 <Select
-                  value={formData.barangay_id || ''}
-                  onValueChange={(value) => setFormData({ ...formData, barangay_id: value || null })}
+                  value={formData.barangay_id || 'none'}
+                  onValueChange={(value) => setFormData({ ...formData, barangay_id: value === 'none' ? null : value })}
                   disabled={isLoading}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a barangay" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {barangays.map((barangay) => (
                       <SelectItem key={barangay.id} value={barangay.id}>
                         {barangay.name} ({barangay.code})
