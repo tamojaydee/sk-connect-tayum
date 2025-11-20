@@ -59,7 +59,7 @@ export const MapboxLocationPicker: React.FC<MapboxLocationPickerProps> = ({
     return () => {
       map.current?.remove();
     };
-  }, [onLocationSelect]);
+  }, []);
 
   useEffect(() => {
     if (selectedLocation && map.current) {
