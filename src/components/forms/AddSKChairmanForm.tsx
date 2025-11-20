@@ -150,15 +150,18 @@ export const AddSKChairmanForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
         avatarUrl = publicUrl;
       }
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: validation.data.email,
-        password: validation.data.password,
-        options: {
-          data: {
+      // Create auth user via edge function (won't auto-login)
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data: createUserResponse, error: authError } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: validation.data.email,
+          password: validation.data.password,
+          metadata: {
             full_name: validation.data.full_name,
           },
-          emailRedirectTo: `${window.location.origin}/`,
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
         },
       });
 
@@ -166,9 +169,11 @@ export const AddSKChairmanForm = ({ onSuccess }: { onSuccess: () => void }) => {
         throw authError;
       }
 
-      if (!authData.user) {
+      if (!createUserResponse?.user) {
         throw new Error('Failed to create user');
       }
+
+      const authData = { user: createUserResponse.user };
 
       // Update profile (trigger already created it)
       const { error: profileError } = await supabase
