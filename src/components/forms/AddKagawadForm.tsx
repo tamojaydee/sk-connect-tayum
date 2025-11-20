@@ -122,25 +122,30 @@ export const AddKagawadForm: React.FC<AddKagawadFormProps> = ({
   const onSubmit = async (data: KagawadFormData) => {
     setIsSubmitting(true);
     try {
-      // Create the auth user with provided password
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
+      // Create the auth user via edge function (won't auto-login)
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data: createUserResponse, error: authError } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: data.email,
+          password: data.password,
+          metadata: {
             full_name: data.full_name,
             role: 'kagawad',
             barangay_id: barangayId,
           },
         },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
       });
 
       if (authError) throw authError;
 
-      if (!authData.user) {
+      if (!createUserResponse?.user) {
         throw new Error('Failed to create user account');
       }
+
+      const authData = { user: createUserResponse.user };
 
       // Upload avatar if provided
       let avatarUrl: string | null = null;
