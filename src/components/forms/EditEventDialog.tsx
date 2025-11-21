@@ -20,6 +20,7 @@ const eventSchema = z.object({
   event_date: z.string().min(1, "Event date is required"),
   barangay_id: z.string().min(1, "Barangay is required"),
   budget: z.string().optional(),
+  status: z.enum(['active', 'completed']).default('active'),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -83,6 +84,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
       event_date: '',
       barangay_id: '',
       budget: '',
+      status: 'active',
     },
   });
 
@@ -114,6 +116,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         event_date: new Date(event.event_date).toISOString().slice(0, 16),
         barangay_id: event.barangay_id,
         budget: event.budget?.toString() || '',
+        status: event.status as 'active' | 'completed',
       });
 
       if (locationData.lat && locationData.lng) {
@@ -200,6 +203,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
           barangay_id: data.barangay_id,
           thumbnail_url: thumbnailUrl,
           budget: data.budget ? parseFloat(data.budget) : null,
+          status: data.status,
         })
         .eq('id', event.id);
 
@@ -363,6 +367,28 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Status</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Active (Upcoming)</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

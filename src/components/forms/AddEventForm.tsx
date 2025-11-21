@@ -21,6 +21,7 @@ const eventSchema = z.object({
   event_date: z.string().min(1, "Event date is required"),
   barangay_id: z.string().min(1, "Barangay is required"),
   budget: z.string().optional(),
+  status: z.enum(['active', 'completed']).default('active'),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -59,6 +60,7 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
       event_date: '',
       barangay_id: userProfile?.barangay_id || '',
       budget: '',
+      status: 'active',
     },
   });
 
@@ -160,6 +162,7 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
           created_by: userProfile.id,
           thumbnail_url: thumbnailUrl,
           budget: data.budget ? parseFloat(data.budget) : null,
+          status: data.status,
         })
         .select()
         .single();
@@ -354,6 +357,28 @@ export const AddEventForm: React.FC<AddEventFormProps> = ({ onEventAdded, userPr
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Active (Upcoming)</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

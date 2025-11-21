@@ -32,7 +32,8 @@ interface Barangay {
 }
 
 export const EventsSection = () => {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [activeEvents, setActiveEvents] = useState<Event[]>([]);
+  const [completedEvents, setCompletedEvents] = useState<Event[]>([]);
   const [barangays, setBarangays] = useState<Barangay[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBarangay, setSelectedBarangay] = useState<string>('all');
@@ -56,23 +57,39 @@ export const EventsSection = () => {
 
   const fetchEvents = async () => {
     setLoading(true);
-    const { data } = await supabase
+    
+    // Fetch active events
+    const { data: active } = await supabase
       .from('events')
       .select('*, barangays(name), profiles(full_name)')
       .eq('status', 'active')
       .is('archived_at', null)
       .order('event_date', { ascending: true });
     
-    if (data) setEvents(data);
+    // Fetch completed events
+    const { data: completed } = await supabase
+      .from('events')
+      .select('*, barangays(name), profiles(full_name)')
+      .eq('status', 'completed')
+      .is('archived_at', null)
+      .order('event_date', { ascending: false });
+    
+    if (active) setActiveEvents(active);
+    if (completed) setCompletedEvents(completed);
     setLoading(false);
   };
 
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesBarangay = selectedBarangay === 'all' || event.barangay_id === selectedBarangay;
-    return matchesSearch && matchesBarangay;
-  });
+  const filterEvents = (events: Event[]) => {
+    return events.filter(event => {
+      const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           event.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesBarangay = selectedBarangay === 'all' || event.barangay_id === selectedBarangay;
+      return matchesSearch && matchesBarangay;
+    });
+  };
+
+  const filteredActiveEvents = filterEvents(activeEvents);
+  const filteredCompletedEvents = filterEvents(completedEvents);
 
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
@@ -88,12 +105,65 @@ export const EventsSection = () => {
     }
   };
 
+  const renderEventCard = (event: Event) => (
+    <Card 
+      key={event.id} 
+      className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] overflow-hidden"
+      onClick={() => handleEventClick(event)}
+    >
+      {event.thumbnail_url && (
+        <div className="w-full h-48 overflow-hidden">
+          <img 
+            src={event.thumbnail_url} 
+            alt={event.title}
+            className="w-full h-full object-cover transition-transform hover:scale-105"
+          />
+        </div>
+      )}
+      <CardContent className="p-6 space-y-4">
+        <div>
+          <h3 className="font-semibold text-lg mb-2">{event.title}</h3>
+          {event.barangays && (
+            <Badge variant="secondary" className="mb-2">
+              {event.barangays.name}
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4" />
+          <span>{format(new Date(event.event_date), 'PPP')}</span>
+        </div>
+
+        <div className="flex items-start gap-2 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span className="line-clamp-2">{parseLocation(event.location)}</span>
+        </div>
+
+        {event.budget && (
+          <div className="flex items-center justify-between bg-muted/50 px-3 py-2 rounded-md">
+            <span className="text-xs font-medium">Budget:</span>
+            <span className="text-sm font-semibold text-primary">
+              ₱{event.budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+        )}
+
+        {event.description && (
+          <p className="text-sm text-muted-foreground line-clamp-3">
+            {event.description}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-heading font-bold text-foreground mb-4">
-            Upcoming Events
+            Events
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Stay updated with youth activities and community events across Tayum
@@ -131,70 +201,44 @@ export const EventsSection = () => {
           </div>
         </div>
 
-        {/* Events Grid */}
         {loading ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">Loading events...</p>
           </div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No events found</p>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((event) => (
-              <Card 
-                key={event.id} 
-                className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] overflow-hidden"
-                onClick={() => handleEventClick(event)}
-              >
-                {event.thumbnail_url && (
-                  <div className="w-full h-48 overflow-hidden">
-                    <img 
-                      src={event.thumbnail_url} 
-                      alt={event.title}
-                      className="w-full h-full object-cover transition-transform hover:scale-105"
-                    />
-                  </div>
-                )}
-                <CardContent className="p-6 space-y-4">
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">{event.title}</h3>
-                    {event.barangays && (
-                      <Badge variant="secondary" className="mb-2">
-                        {event.barangays.name}
-                      </Badge>
-                    )}
-                  </div>
+          <>
+            {/* Upcoming Events */}
+            <div className="mb-16">
+              <h3 className="text-2xl font-heading font-bold text-foreground mb-6">
+                Upcoming Events
+              </h3>
+              {filteredActiveEvents.length === 0 ? (
+                <div className="text-center py-12 bg-muted/30 rounded-lg">
+                  <p className="text-muted-foreground">No upcoming events found</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredActiveEvents.map(renderEventCard)}
+                </div>
+              )}
+            </div>
 
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>{format(new Date(event.event_date), 'PPP')}</span>
-                  </div>
-
-                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    <span className="line-clamp-2">{parseLocation(event.location)}</span>
-                  </div>
-
-                  {event.budget && (
-                    <div className="flex items-center justify-between bg-muted/50 px-3 py-2 rounded-md">
-                      <span className="text-xs font-medium">Budget:</span>
-                      <span className="text-sm font-semibold text-primary">
-                        ₱{event.budget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                  )}
-
-                  {event.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {event.description}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+            {/* Completed Events */}
+            <div>
+              <h3 className="text-2xl font-heading font-bold text-foreground mb-6">
+                Completed Events
+              </h3>
+              {filteredCompletedEvents.length === 0 ? (
+                <div className="text-center py-12 bg-muted/30 rounded-lg">
+                  <p className="text-muted-foreground">No completed events found</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredCompletedEvents.map(renderEventCard)}
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* Event Details Dialog */}
