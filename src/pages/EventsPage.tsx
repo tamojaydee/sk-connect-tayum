@@ -9,7 +9,7 @@ const EventsPage = () => {
         <div className="container mx-auto px-6 py-12">
           <div className="mb-8">
             <h1 className="text-4xl font-heading font-bold text-foreground mb-4">
-              Upcoming Events
+              Events
             </h1>
             <p className="text-lg text-muted-foreground">
               Stay updated with the latest events and activities across all barangays
