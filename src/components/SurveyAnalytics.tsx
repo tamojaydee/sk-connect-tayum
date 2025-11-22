@@ -198,7 +198,48 @@ export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProp
     { name: "Female", value: surveys.filter(s => s.gender === "female").length },
   ];
 
-  const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))'];
+  // Demographic data
+  const civilStatusData = surveys.reduce((acc, s) => {
+    const status = (s as any).civil_status || 'Not specified';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const workStatusData = surveys.reduce((acc, s) => {
+    const status = (s as any).work_status || 'Not specified';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const educationData = surveys.reduce((acc, s) => {
+    const edu = (s as any).educational_background || 'Not specified';
+    acc[edu] = (acc[edu] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const youthAgeGroupData = surveys.reduce((acc, s) => {
+    const group = (s as any).youth_age_group || 'Not specified';
+    acc[group] = (acc[group] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Participation data
+  const skVoterData = [
+    { name: 'Registered SK Voter', value: surveys.filter(s => (s as any).registered_sk_voter === true).length },
+    { name: 'Not Registered', value: surveys.filter(s => (s as any).registered_sk_voter === false).length },
+  ];
+
+  const assemblyAttendanceData = [
+    { name: 'Attended', value: surveys.filter(s => (s as any).sk_assembly_attended === true).length },
+    { name: 'Not Attended', value: surveys.filter(s => (s as any).sk_assembly_attended === false).length },
+  ];
+
+  const skElectionVotedData = [
+    { name: 'Voted', value: surveys.filter(s => (s as any).sk_election_voted === true).length },
+    { name: 'Not Voted', value: surveys.filter(s => (s as any).sk_election_voted === false).length },
+  ];
+
+  const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
   return (
     <div className="space-y-6">
@@ -242,7 +283,7 @@ export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProp
         </Card>
       </div>
 
-      {/* Charts */}
+      {/* Basic Demographics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -285,6 +326,185 @@ export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProp
                 </Pie>
                 <Tooltip />
                 <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Demographic Characteristics */}
+      <h3 className="text-xl font-semibold text-foreground mt-8 mb-4">Demographic Characteristics</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Civil Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={Object.entries(civilStatusData).map(([name, count]) => ({ name, count }))}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="hsl(var(--primary))" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Youth Age Groups</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={Object.entries(youthAgeGroupData).map(([name, value]) => ({ name, value }))}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {Object.keys(youthAgeGroupData).map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Educational Background</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={Object.entries(educationData).map(([name, count]) => ({ name, count }))}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="hsl(var(--secondary))" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Work Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={Object.entries(workStatusData).map(([name, value]) => ({ name, value }))}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {Object.keys(workStatusData).map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Participation & Voting History */}
+      <h3 className="text-xl font-semibold text-foreground mt-8 mb-4">Participation & Voting History</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>SK Voter Registration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={skVoterData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {skVoterData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>SK Assembly Attendance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={assemblyAttendanceData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {assemblyAttendanceData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>SK Election Voting</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={skElectionVotedData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {skElectionVotedData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>

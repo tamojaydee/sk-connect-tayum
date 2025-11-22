@@ -669,9 +669,11 @@ export type Database = {
           age: number
           available_time: string | null
           barangay_id: string
+          civil_status: string | null
           contact_number: string | null
           created_at: string
           duration_years: number | null
+          educational_background: string | null
           email: string | null
           favorite_activity: string | null
           full_name: string
@@ -682,19 +684,32 @@ export type Database = {
           improvement_suggestions: string | null
           interest_areas: string[] | null
           interested_in_joining: boolean
+          no_sk_assembly_reason: string | null
           participation_type: string | null
           preferred_activities: string[] | null
+          registered_national_voter: boolean | null
+          registered_sk_voter: boolean | null
+          sk_assembly_attended: boolean | null
+          sk_assembly_frequency: string | null
+          sk_election_frequency: string | null
+          sk_election_voted: boolean | null
+          special_categories: string[] | null
           updated_at: string
           user_id: string | null
+          work_status: string | null
+          youth_age_group: string | null
+          youth_classification: string[] | null
         }
         Insert: {
           address?: string | null
           age: number
           available_time?: string | null
           barangay_id: string
+          civil_status?: string | null
           contact_number?: string | null
           created_at?: string
           duration_years?: number | null
+          educational_background?: string | null
           email?: string | null
           favorite_activity?: string | null
           full_name: string
@@ -705,19 +720,32 @@ export type Database = {
           improvement_suggestions?: string | null
           interest_areas?: string[] | null
           interested_in_joining?: boolean
+          no_sk_assembly_reason?: string | null
           participation_type?: string | null
           preferred_activities?: string[] | null
+          registered_national_voter?: boolean | null
+          registered_sk_voter?: boolean | null
+          sk_assembly_attended?: boolean | null
+          sk_assembly_frequency?: string | null
+          sk_election_frequency?: string | null
+          sk_election_voted?: boolean | null
+          special_categories?: string[] | null
           updated_at?: string
           user_id?: string | null
+          work_status?: string | null
+          youth_age_group?: string | null
+          youth_classification?: string[] | null
         }
         Update: {
           address?: string | null
           age?: number
           available_time?: string | null
           barangay_id?: string
+          civil_status?: string | null
           contact_number?: string | null
           created_at?: string
           duration_years?: number | null
+          educational_background?: string | null
           email?: string | null
           favorite_activity?: string | null
           full_name?: string
@@ -728,10 +756,21 @@ export type Database = {
           improvement_suggestions?: string | null
           interest_areas?: string[] | null
           interested_in_joining?: boolean
+          no_sk_assembly_reason?: string | null
           participation_type?: string | null
           preferred_activities?: string[] | null
+          registered_national_voter?: boolean | null
+          registered_sk_voter?: boolean | null
+          sk_assembly_attended?: boolean | null
+          sk_assembly_frequency?: string | null
+          sk_election_frequency?: string | null
+          sk_election_voted?: boolean | null
+          special_categories?: string[] | null
           updated_at?: string
           user_id?: string | null
+          work_status?: string | null
+          youth_age_group?: string | null
+          youth_classification?: string[] | null
         }
         Relationships: [
           {
