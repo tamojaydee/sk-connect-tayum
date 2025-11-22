@@ -126,6 +126,22 @@ const Survey = () => {
         contact_number: data.contactNumber,
         email: data.emailAddress,
         address: `${data.purokZone || ''} ${data.barangay}, ${data.cityMunicipality}, ${data.province}`.trim(),
+        // Demographic characteristics
+        civil_status: data.civilStatus,
+        youth_classification: data.youthClassification || [],
+        youth_age_group: data.youthAgeGroup,
+        educational_background: data.educationalBackground,
+        work_status: data.workStatus,
+        special_categories: data.specialCategories || [],
+        // Participation & Voting History
+        registered_sk_voter: data.registeredSKVoter === "yes",
+        registered_national_voter: data.registeredNationalVoter === "yes",
+        sk_assembly_attended: data.skAssemblyAttended === "yes",
+        sk_assembly_frequency: data.skAssemblyFrequency,
+        sk_election_voted: data.skElectionVoted === "yes",
+        sk_election_frequency: data.skElectionFrequency,
+        no_sk_assembly_reason: data.noSKAssemblyReason,
+        // Legacy fields (kept for compatibility)
         has_participated: data.skAssemblyAttended === "yes",
         participation_type: data.civilStatus,
         duration_years: null,
