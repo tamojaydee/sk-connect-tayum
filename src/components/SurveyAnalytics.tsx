@@ -434,14 +434,14 @@ export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProp
             <CardTitle>SK Voter Registration</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={skVoterData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -451,6 +451,7 @@ export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProp
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -461,14 +462,14 @@ export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProp
             <CardTitle>SK Assembly Attendance</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={assemblyAttendanceData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -478,6 +479,7 @@ export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProp
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -488,14 +490,14 @@ export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProp
             <CardTitle>SK Election Voting</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={skElectionVotedData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -505,6 +507,7 @@ export const SurveyAnalytics = ({ barangayId, monthFilter }: SurveyAnalyticsProp
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
