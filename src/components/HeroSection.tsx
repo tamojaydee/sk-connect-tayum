@@ -52,11 +52,9 @@ const HeroSection = () => {
           
           {/* Main headline */}
           <h1 className="text-4xl lg:text-6xl font-heading font-bold text-foreground mb-6 leading-tight">
-            SKey Connect:
             <span className="block text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
-              Empowering Young Leaders
+              Skey Connect: Empowering Young Leaders Through Digital Transparency in Tayum, Abra
             </span>
-            Through Transparency
           </h1>
           
           {/* Subtitle */}
